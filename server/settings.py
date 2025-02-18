@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'investment_tables.apps.InvestmentTablesConfig',
     'portfolio.apps.PortfolioConfig',
     'exchange.apps.ExchangeConfig',
+    'utils.apps.UtilsConfig',
 ]
 
 MIDDLEWARE = [
