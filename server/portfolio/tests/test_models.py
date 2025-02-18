@@ -31,10 +31,12 @@ class PortfolioModelTestCase(TestCase):
 
     async def test_can_add_securities_to_portfolio(self):
         await self.portfolio.securities.aadd(
-            self.stock1, through_defaults={'quantity': 3},
+            self.stock1,
+            through_defaults={'quantity': 3},
         )
         await self.portfolio.securities.aadd(
-            self.stock2, through_defaults={'quantity': 5},
+            self.stock2,
+            through_defaults={'quantity': 5},
         )
         await self.portfolio.items.acount()
         self.assertEqual(await self.portfolio.items.acount(), 2)

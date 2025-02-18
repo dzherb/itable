@@ -3,7 +3,7 @@ import asyncio
 from django.test import TestCase
 
 import exchange.models
-from utils.db_helpers import AsyncAtomic, aatomic
+from utils.db_helpers import aatomic, AsyncAtomic
 
 
 class AsyncAtomicTestCase(TestCase):
@@ -52,7 +52,7 @@ class AsyncAtomicTestCase(TestCase):
         tasks = [
             exchange.models.Security.objects.acreate(ticker='SBER'),
             exchange.models.Security.objects.acreate(ticker='T'),
-            exchange.models.Security.objects.acreate(ticker='YDEX')
+            exchange.models.Security.objects.acreate(ticker='YDEX'),
         ]
         await asyncio.gather(*tasks)
         raise Exception

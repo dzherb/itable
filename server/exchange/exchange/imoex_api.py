@@ -12,8 +12,16 @@ class _MOEXBaseApi:
     def __init__(self):
         self._session = None
 
-    def _get_iss_client(self, request_url: str, arguments: dict | None = None) -> aiomoex.ISSClient:
-        return aiomoex.ISSClient(self._session, self.BASE_URL + request_url, arguments)
+    def _get_iss_client(
+        self,
+        request_url: str,
+        arguments: dict | None = None,
+    ) -> aiomoex.ISSClient:
+        return aiomoex.ISSClient(
+            self._session,
+            self.BASE_URL + request_url,
+            arguments,
+        )
 
 
 class IMOEXApi(_MOEXBaseApi, IndexAPIProtocol):
@@ -24,13 +32,22 @@ class IMOEXApi(_MOEXBaseApi, IndexAPIProtocol):
     async def get_index_content(self) -> list[SecurityDict]:
         async with aiohttp.ClientSession() as session:
             self._session = session
-            await asyncio.gather(self._collect_weights(), self._collect_prices())
+            await asyncio.gather(
+                self._collect_weights(),
+                self._collect_prices(),
+            )
             await self._collect_dividends()
 
-        return [security for security in self._result.values() if security.get('ticker')]
+        return [
+            security
+            for security in self._result.values()
+            if security.get('ticker')
+        ]
 
     async def _collect_weights(self):
-        request_url = "/statistics/engines/stock/markets/index/analytics/IMOEX.json"
+        request_url = (
+            '/statistics/engines/stock/markets/index/analytics/IMOEX.json'
+        )
         arguments = {'limit': 100}
         client = self._get_iss_client(request_url, arguments)
         data = await client.get()
@@ -44,7 +61,9 @@ class IMOEXApi(_MOEXBaseApi, IndexAPIProtocol):
             }
 
     async def _collect_prices(self):
-        request_url = "/engines/stock/markets/shares/boards/TQBR/securities.json"
+        request_url = (
+            '/engines/stock/markets/shares/boards/TQBR/securities.json'
+        )
         client = self._get_iss_client(request_url)
         data = await client.get()
 
@@ -62,7 +81,7 @@ class IMOEXApi(_MOEXBaseApi, IndexAPIProtocol):
             if not self._result[ticker].get('ticker'):
                 continue
 
-            request_url = f"/securities/{ticker}/dividends.json"
+            request_url = f'/securities/{ticker}/dividends.json'
             client = self._get_iss_client(request_url)
             tasks.append(client.get())
 
