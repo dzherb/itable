@@ -1,0 +1,42 @@
+volumes:
+  pg_data:
+  static:
+  media:
+
+services:
+  db:
+    container_name: itable-db
+    image: postgres:14.16-alpine3.20
+    env_file: .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  backend:
+    container_name: itable-backend
+    build: ./server/
+    env_file: .env
+    volumes:
+      - static:/app/collected_static
+      - media:/app/media
+    depends_on:
+      - db
+    post_start:
+      - command: python manage.py collectstatic --noinput
+      - command: python manage.py migrate
+
+  frontend:
+    container_name: itable-frontend
+    build: ./client
+    volumes:
+      - static:/static
+
+  nginx:
+    container_name: itable-nginx
+    build: ./infrastructure
+    ports:
+      - "8081:80"
+    volumes:
+      - static:/static
+      - media:/media
+    depends_on:
+      - backend

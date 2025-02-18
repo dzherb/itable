@@ -1,0 +1,16 @@
+[project]
+name = "itable-server"
+version = "0.1.0"
+description = ""
+requires-python = ">=3.13"
+dependencies = [
+    "django>=5.1.6",
+    "load-dotenv>=0.1.0",
+    "psycopg[binary]>=3.2.4",
+    "uvicorn>=0.34.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9.6",
+]
