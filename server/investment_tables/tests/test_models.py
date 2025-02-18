@@ -1,8 +1,10 @@
+from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.test import TestCase
 
 import exchange.models
 import investment_tables.models
+import portfolio.models
 
 
 class TableTemplateTestCase(TestCase):
@@ -67,3 +69,50 @@ class TableTemplateTestCase(TestCase):
                 self.stock2,
                 through_defaults={'weight': -1},
             )
+
+
+class TableSnapshotTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.stock1 = exchange.models.Security.objects.create(ticker='A')
+        cls.stock2 = exchange.models.Security.objects.create(ticker='B')
+        cls.table_template = (
+            investment_tables.models.TableTemplate.objects.create(
+                name='test table',
+            )
+        )
+        cls.table_template.securities.add(
+            cls.stock1,
+            through_defaults={'weight': 35},
+        )
+        cls.table_template.securities.add(
+            cls.stock2,
+            through_defaults={'weight': 32},
+        )
+
+        cls.user = get_user_model().objects.create(
+            username='testuser',
+            password='testpswd',
+        )
+
+        cls.portfolio = portfolio.models.Portfolio.objects.create(
+            name='test portfolio',
+            user=cls.user,
+        )
+
+    async def test_can_create_snapshot_from_template(self):
+        snapshot = await investment_tables.models.TableSnapshot.from_template(
+            template=self.table_template,
+            portfolio=self.portfolio,
+        )
+
+        self.assertEqual(await snapshot.template_items.acount(), 2)
+        self.assertEqual((await snapshot.template_items.alast()).weight, 32)
+        self.assertEqual(
+            (
+                await snapshot.template_items.select_related(
+                    'security',
+                ).alast()
+            ).security.ticker,
+            'B',
+        )

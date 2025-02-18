@@ -17,5 +17,8 @@ class TableSnapshotItem(CreatedUpdatedAbstractModel, models.Model):
         on_delete=models.CASCADE,
     )
 
+    class Meta:
+        unique_together = (('snapshot', 'template_item'),)
+
     def __str__(self):
         return f'{self.snapshot} {self.template_item}'

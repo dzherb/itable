@@ -6,8 +6,8 @@ from utils.abstract_models import CreatedUpdatedAbstractModel
 class PortfolioItem(CreatedUpdatedAbstractModel, models.Model):
     portfolio = models.ForeignKey(
         to='Portfolio',
-        related_name='portfolio_items',
-        related_query_name='portfolio_item',
+        related_name='items',
+        related_query_name='item',
         on_delete=models.CASCADE,
     )
     security = models.ForeignKey(
@@ -17,6 +17,9 @@ class PortfolioItem(CreatedUpdatedAbstractModel, models.Model):
         on_delete=models.CASCADE,
     )
     quantity = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        unique_together = (('portfolio', 'security'),)
 
     def __str__(self):
         return f'{self.portfolio} - {self.security}'
