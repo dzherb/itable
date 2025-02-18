@@ -8,7 +8,7 @@ class PortfolioItem(CreatedUpdatedAbstractModel, models.Model):
         to='Portfolio',
         related_name='portfolio_items',
         related_query_name='portfolio_item',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
     security = models.ForeignKey(
         to='exchange.Security',
@@ -17,3 +17,6 @@ class PortfolioItem(CreatedUpdatedAbstractModel, models.Model):
         on_delete=models.CASCADE,
     )
     quantity = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f'{self.portfolio} - {self.security}'

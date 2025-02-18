@@ -26,4 +26,4 @@ class TableSnapshot(CreatedUpdatedAbstractModel, models.Model):
     )
 
     def __str__(self):
-        return self.template.name
+        return f'{self.template.name} - {self.portfolio}'

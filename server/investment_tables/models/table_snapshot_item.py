@@ -16,3 +16,6 @@ class TableSnapshotItem(CreatedUpdatedAbstractModel, models.Model):
         related_query_name='snapshot_item',
         on_delete=models.CASCADE,
     )
+
+    def __str__(self):
+        return f'{self.snapshot} {self.template_item}'
