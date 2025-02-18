@@ -15,6 +15,7 @@ class TableTemplateTestCase(TestCase):
         cls.table_template = (
             investment_tables.models.TableTemplate.objects.create(
                 name='test table',
+                slug='test-table',
             )
         )
 

@@ -7,6 +7,7 @@ from utils.abstract_models import (
 
 class TableTemplate(CreatedUpdatedAbstractModel, models.Model):
     name = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=20, unique=True)
     securities = models.ManyToManyField(
         to='exchange.Security',
         through='TableTemplateItem',
