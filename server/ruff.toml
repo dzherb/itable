@@ -35,7 +35,8 @@ ignore = [
 
 [lint.isort]
 known-first-party = [
-
+    "users",
+    "investment_tables"
 ]
 
 force-sort-within-sections = true

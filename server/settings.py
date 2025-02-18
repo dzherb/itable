@@ -23,6 +23,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users.apps.UsersConfig',
+    'investment_tables.apps.InvestmentTablesConfig',
+    'portfolio.apps.PortfolioConfig',
+    'exchange.apps.ExchangeConfig'
 ]
 
 MIDDLEWARE = [
