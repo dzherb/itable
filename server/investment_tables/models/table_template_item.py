@@ -3,6 +3,11 @@ from django.db import models
 from utils.abstract_models import CreatedUpdatedAbstractModel
 
 
+class TableTemplateItemQuerySet(models.QuerySet):
+    def active(self):
+        return self.filter(is_active=True)
+
+
 class TableTemplateItem(CreatedUpdatedAbstractModel, models.Model):
     weight = models.FloatField(help_text='in %')
     template = models.ForeignKey(
@@ -17,6 +22,9 @@ class TableTemplateItem(CreatedUpdatedAbstractModel, models.Model):
         related_query_name='template_item',
         on_delete=models.CASCADE,
     )
+    is_active = models.BooleanField(default=True)
+
+    objects = TableTemplateItemQuerySet.as_manager()
 
     class Meta:
         unique_together = (('template', 'security'),)
