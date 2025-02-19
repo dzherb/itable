@@ -30,4 +30,3 @@ class MethodSharedCacheTestCase(TestCase):
 
         await second_instance.simple_method(arg=1)
         self.assertEqual(self.real_calls_count, 2)
-

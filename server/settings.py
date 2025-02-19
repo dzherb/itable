@@ -3,6 +3,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from logging_config import setup_logging
+
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -103,3 +105,6 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGGING_CONFIG = None
+setup_logging(BASE_DIR)
