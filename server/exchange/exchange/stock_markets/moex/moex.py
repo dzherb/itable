@@ -13,6 +13,7 @@ from exchange.exchange.stock_markets.stock_market_protocol import (
     SecurityDict,
     StockMarketProtocol,
 )
+from utils.cache import alru_method_shared_cache
 
 
 class MOEX(StockMarketProtocol):
@@ -21,8 +22,8 @@ class MOEX(StockMarketProtocol):
             client_factory or ISSClientFactoryImpl()
         )
         self._session: aiohttp.ClientSession | None = None
-        self._result: dict[str, SecurityDict] = {}
         self._tickers: set[str] | None = None
+        self._result: dict[str, SecurityDict] = {}
 
     async def get_securities(
         self,
@@ -80,11 +81,11 @@ class MOEX(StockMarketProtocol):
                 },
             )
 
+    @alru_method_shared_cache(ttl=20 * 60)
     async def _get_dividends_for_ticker(
         self,
         ticker: str,
     ) -> aiomoex.client.Table:
-        # todo cache
         resource = f'/securities/{ticker}/dividends.json'
         client = self._get_client(resource)
         return (await client.get())['dividends']

@@ -5,6 +5,7 @@ description = ""
 requires-python = ">=3.13"
 dependencies = [
     "aiomoex>=2.1.2",
+    "async-lru>=2.0.4",
     "django>=5.1.6",
     "load-dotenv>=0.1.0",
     "psycopg[binary]>=3.2.4",
