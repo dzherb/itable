@@ -14,7 +14,7 @@ class MethodsChecker(Checker):
         self._allowed_methods: Sequence[Methods] = methods
 
     @override
-    async def check(self, request: HttpRequest) -> bool:
+    async def check(self, request: HttpRequest, *args, **kwargs) -> bool:
         return request.method in self._allowed_methods
 
     @override

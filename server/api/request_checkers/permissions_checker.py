@@ -19,8 +19,11 @@ class PermissionsChecker(Checker):
         self._permissions = permissions
 
     @override
-    async def check(self, request: HttpRequest) -> bool:
-        tasks = [permission.check(request) for permission in self._permissions]
+    async def check(self, request: HttpRequest, *args, **kwargs) -> bool:
+        tasks = [
+            permission.has_permission(request, *args, **kwargs)
+            for permission in self._permissions
+        ]
         for result in asyncio.as_completed(tasks):
             if not await result:
                 return False

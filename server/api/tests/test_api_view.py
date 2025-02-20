@@ -4,9 +4,11 @@ import json
 from typing import override
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.test import AsyncRequestFactory, TestCase
 
+from api.helpers import aget_object_or_404_json
 from api.permissions.permission_protocol import Permission
 from api.views.api_view import api_view, Checker
 
@@ -15,7 +17,12 @@ User = get_user_model()
 
 class UsernameLenIs10Permission(Permission):
     @override
-    async def check(self, request: HttpRequest) -> bool:
+    async def has_permission(
+        self,
+        request: HttpRequest,
+        *args,
+        **kwargs,
+    ) -> bool:
         return (
             request.user.is_authenticated and len(request.user.username) == 10
         )
@@ -23,7 +30,7 @@ class UsernameLenIs10Permission(Permission):
 
 class RequestHasAcceptCharsetHeaderChecker(Checker):
     @override
-    async def check(self, request: HttpRequest) -> bool:
+    async def check(self, request: HttpRequest, *args, **kwargs) -> bool:
         return 'Accept-Charset' in request.headers
 
     @override
@@ -92,7 +99,12 @@ class APIViewTestCase(TestCase):
     async def test_api_view_checks_permissions_and_allows(self):
         class UsernameLenIs4Permission(Permission):
             @override
-            async def check(self, request: HttpRequest) -> bool:
+            async def has_permission(
+                self,
+                request: HttpRequest,
+                *args,
+                **kwargs,
+            ) -> bool:
                 return (
                     request.user.is_authenticated
                     and len(request.user.username) == 4
@@ -131,6 +143,19 @@ class APIViewTestCase(TestCase):
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(content['error'], 'Expected Accept-Charset header')
+
+    async def test_not_found_exception_is_intercepted(self):
+        @api_view
+        async def user_handler(request):
+            user = await aget_object_or_404_json(User, pk=42)
+            return JsonResponse({'user_id': user.id})
+
+        request = self.factory.get(path='/user_handler')
+        response = await user_handler(request)
+        content = json.loads(response.content)
+
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        self.assertEqual(content['error'], 'not found')
 
 
 @dataclasses.dataclass
@@ -270,3 +295,42 @@ class APIViewSchemaValidationTestCase(TestCase):
         response = await self.handler(request)
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
+
+
+class APIViewAuthenticationTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.factory = AsyncRequestFactory()
+
+        @api_view(methods=['GET'], login_required=True)
+        async def handler(request):
+            return JsonResponse({}, status=HTTPStatus.OK)
+
+        cls.handler = handler
+        cls.user = User.objects.create_user(
+            username='test',
+            password='password',
+        )
+
+    def _attach_user_to_mocked_request(self, request, user):
+        async def auser():
+            return user
+
+        request.auser = auser
+
+    async def test_authenticated_user_has_access(self):
+        request = self.factory.get(path='/handler')
+        self._attach_user_to_mocked_request(request, self.user)
+
+        response = await self.handler(request)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    async def test_anonymous_user_has_no_access(self):
+        request = self.factory.get(path='/handler')
+        self._attach_user_to_mocked_request(request, AnonymousUser())
+
+        response = await self.handler(request)
+        error = json.loads(response.content)['error']
+
+        self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
+        self.assertEqual(error, 'authentication required')

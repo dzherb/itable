@@ -1,11 +1,14 @@
 from collections.abc import Iterable, Sequence
 import functools
+from http import HTTPStatus
 from typing import Callable
 
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 
+from api import exceptions
 from api.permissions.permission_protocol import Permission
 from api.request_checkers import (
+    AuthenticationChecker,
     MethodsChecker,
     PermissionsChecker,
     SchemaChecker,
@@ -38,11 +41,13 @@ class api_view:  # noqa: N801
         self,
         *,
         methods: Sequence[Methods] | None = None,
+        login_required: bool = False,
         permissions: Iterable[Permission] | None = None,
         request_schema: type | None = None,
         checkers: Iterable[Checker] | None = None,
     ):
         self._methods = methods
+        self._login_required = login_required
         self._permissions = permissions
         self._user_checkers = checkers
         self._request_schema = request_schema
@@ -55,6 +60,7 @@ class api_view:  # noqa: N801
         self,
         *,
         methods: Sequence[Methods] | None = None,
+        login_required: bool = False,
         permissions: Iterable[Permission] | None = None,
         request_schema: type | None = None,
         checkers: Iterable[Checker] | None = None,
@@ -65,22 +71,38 @@ class api_view:  # noqa: N801
 
     def __call__(self, decorated_function: Callable) -> Callable:
         @functools.wraps(decorated_function)
-        async def wrapped_f(
+        async def wrapper(
             request: HttpRequest,
             *args,
             **kwargs,
         ) -> HttpResponse:
-            checks_result = await self._apply_checks(request)
-            if checks_result is not None:
-                return checks_result
+            try:
+                checks_result = await self._apply_checks(
+                    request,
+                    *args,
+                    **kwargs,
+                )
+                if checks_result is not None:
+                    return checks_result
 
-            return await decorated_function(request, *args, **kwargs)
+                return await decorated_function(request, *args, **kwargs)
+            except exceptions.NotFoundError:
+                # This way we can handle aget_object_or_404_json call
+                return JsonResponse(
+                    data={'error': 'not found'},
+                    status=HTTPStatus.NOT_FOUND,
+                )
 
-        return wrapped_f
+        return wrapper
 
-    async def _apply_checks(self, request: HttpRequest) -> HttpResponse | None:
+    async def _apply_checks(
+        self,
+        request: HttpRequest,
+        *args,
+        **kwargs,
+    ) -> HttpResponse | None:
         for checker in self._all_checkers:
-            if not await checker.check(request):
+            if not await checker.check(request, *args, **kwargs):
                 return checker.on_failure_response()
 
         return None
@@ -92,11 +114,14 @@ class api_view:  # noqa: N801
         else:
             checkers.append(MethodsChecker([self.DEFAULT_HTTP_METHOD]))
 
-        if self._permissions is not None:
-            checkers.append(PermissionsChecker(self._permissions))
+        if self._login_required:
+            checkers.append(AuthenticationChecker())
 
         if self._request_schema is not None:
             checkers.append(SchemaChecker(self._request_schema))
+
+        if self._permissions is not None:
+            checkers.append(PermissionsChecker(self._permissions))
 
         if self._user_checkers is not None:
             checkers += self._user_checkers

@@ -14,4 +14,9 @@ urlpatterns = [
             ],
         ),
     ),
+    path(
+        'portfolios/<int:pk>/',
+        views.portfolios.portfolio_dispatcher.as_view(),
+        name='portfolio',
+    ),
 ]

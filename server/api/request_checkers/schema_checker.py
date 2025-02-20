@@ -49,7 +49,7 @@ class SchemaChecker(Checker):
         self._error: str | None = None
 
     @override
-    async def check(self, request: HttpRequest) -> bool:
+    async def check(self, request: HttpRequest, *args, **kwargs) -> bool:
         # Is request.body a blocking I/O operation?
         # Seems like currently there is no way to read it asynchronously.
         request_data = json.loads(request.body)

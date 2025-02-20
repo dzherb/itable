@@ -25,7 +25,7 @@ class PortfolioModelTestCase(TestCase):
         cls.portfolio: portfolio.models.Portfolio = (
             portfolio.models.Portfolio.objects.create(
                 name='Test Portfolio',
-                user=cls.user,
+                owner=cls.user,
             )
         )
 
@@ -46,3 +46,14 @@ class PortfolioModelTestCase(TestCase):
         )
         self.assertEqual(last_portfolio_item.quantity, 5)
         self.assertEqual(last_portfolio_item.security.ticker, 'SBER')
+
+    async def test_portfolio_serialization(self):
+        serialized_portfolio = self.portfolio.serialize()
+        self.assertEqual(
+            serialized_portfolio,
+            {
+                'id': self.portfolio.id,
+                'name': 'Test Portfolio',
+                'owner_id': self.user.id,
+            },
+        )

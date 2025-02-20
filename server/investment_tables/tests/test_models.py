@@ -98,7 +98,7 @@ class TableSnapshotTestCase(TestCase):
 
         cls.portfolio = portfolio.models.Portfolio.objects.create(
             name='test portfolio',
-            user=cls.user,
+            owner=cls.user,
         )
 
     async def test_can_create_snapshot_from_template(self):
