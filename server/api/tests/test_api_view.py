@@ -45,7 +45,7 @@ class APIViewTestCase(TestCase):
         async def hello_world(request):
             return JsonResponse({'message': 'hello world'})
 
-        request = self.factory.get('/hello_world')
+        request = self.factory.get(path='/hello_world')
         response = await hello_world(request)
         content = json.loads(response.content)
 
@@ -57,7 +57,7 @@ class APIViewTestCase(TestCase):
         async def hello_world(request):
             return JsonResponse({'message': 'hello world'})
 
-        request = self.factory.get('/hello_world')
+        request = self.factory.get(path='/hello_world')
         response = await hello_world(request)
         content = json.loads(response.content)
 
@@ -69,7 +69,7 @@ class APIViewTestCase(TestCase):
         async def hello_world(request):
             return JsonResponse({'message': 'hello world'})
 
-        request = self.factory.get('/hello_world')
+        request = self.factory.get(path='/hello_world')
         response = await hello_world(request)
         content = json.loads(response.content)
 
@@ -81,7 +81,7 @@ class APIViewTestCase(TestCase):
         async def hello_world(request):
             return JsonResponse({'message': 'hello world'})
 
-        request = self.factory.get('/hello_world')
+        request = self.factory.get(path='/hello_world')
         request.user = self.user
         response = await hello_world(request)
         content = json.loads(response.content)
@@ -116,7 +116,7 @@ class APIViewTestCase(TestCase):
             return JsonResponse({'message': 'hello world'})
 
         valid_request = self.factory.get(
-            '/hello_world',
+            path='/hello_world',
             headers={'Accept-Charset': 'utf-8'},
         )
         response = await hello_world(valid_request)
@@ -134,7 +134,7 @@ class APIViewTestCase(TestCase):
 
 
 @dataclasses.dataclass
-class UserLoginSchema:
+class UserSchema:
     username: str
     password: str
     age: int | None
@@ -145,10 +145,10 @@ class APIViewSchemaTestCase(TestCase):
     def setUpTestData(cls):
         cls.factory = AsyncRequestFactory()
 
-        @api_view(methods=['POST'], request_schema=UserLoginSchema)
+        @api_view(methods=['POST'], request_schema=UserSchema)
         async def echo(request):
-            user_login = request.populated_schema
-            return JsonResponse(dataclasses.asdict(user_login))
+            user = request.populated_schema
+            return JsonResponse(dataclasses.asdict(user))
 
         cls.echo_handler = echo
 
@@ -161,7 +161,7 @@ class APIViewSchemaTestCase(TestCase):
         for request_data in valid_request_data:
             with self.subTest(request_data=request_data):
                 request = self.factory.post(
-                    '/echo',
+                    path='/echo',
                     data=request_data,
                     content_type='application/json',
                 )
@@ -182,7 +182,7 @@ class APIViewSchemaTestCase(TestCase):
         for request_data in wrong_request_data:
             with self.subTest(request_data=request_data):
                 request = self.factory.post(
-                    '/echo',
+                    path='/echo',
                     data=request_data,
                     content_type='application/json',
                 )
@@ -191,3 +191,82 @@ class APIViewSchemaTestCase(TestCase):
 
                 self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
                 self.assertIn('error', content)
+
+
+@dataclasses.dataclass
+class UserSchemaWithValidators:
+    username: str
+    password: str
+    age: int | None
+
+    def validate(self):
+        if self.username.lower() in self.password.lower():
+            raise ValueError('password contains username')
+
+    def validate_age(self):
+        if self.age is not None and self.age < 1:
+            raise ValueError('age is too small')
+
+    def validate_password(self):
+        if len(self.password) < 8:
+            raise ValueError('password is too short')
+
+        if self.password.isnumeric():
+            raise ValueError('password should include letters')
+
+
+class APIViewSchemaValidationTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.factory = AsyncRequestFactory()
+
+        @api_view(methods=['POST'], request_schema=UserSchemaWithValidators)
+        async def handler(request):
+            return JsonResponse({}, status=HTTPStatus.OK)
+
+        cls.handler = handler
+
+    async def test_api_view_schema_field_validation_failure(self):
+        cases = [
+            (
+                {'username': 'test', 'password': 'strong1Pass', 'age': 0},
+                'age is too small',
+            ),
+            (
+                {'username': 'test', 'password': 'pass', 'age': 18},
+                'password is too short',
+            ),
+            (
+                {'username': 'test', 'password': '12345678', 'age': 18},
+                'password should include letters',
+            ),
+        ]
+
+        for case in cases:
+            with self.subTest(case=case):
+                request_data, expected_error = case
+
+                request = self.factory.post(
+                    path='/handler',
+                    data=request_data,
+                    content_type='application/json',
+                )
+                response = await self.handler(request)
+                content = json.loads(response.content)
+                self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+                self.assertEqual(content['error'], expected_error)
+
+    async def test_api_view_schema_field_validation_success(self):
+        request_data = {
+            'username': 'test',
+            'password': 'strong1Pass',
+            'age': 18,
+        }
+        request = self.factory.post(
+            path='/handler',
+            data=request_data,
+            content_type='application/json',
+        )
+        response = await self.handler(request)
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)

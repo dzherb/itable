@@ -8,7 +8,7 @@ from django.urls import reverse
 User = get_user_model()
 
 
-class LoginCase(TestCase):
+class AuthTestsMixin:
     def setUp(self):
         self.client = AsyncClient()
 
@@ -18,6 +18,8 @@ class LoginCase(TestCase):
             password='password',
         )
 
+
+class LoginCase(AuthTestsMixin, TestCase):
     async def test_login_with_correct_credentials(self):
         user = await self._create_user()
         response = await self.client.post(
@@ -46,17 +48,11 @@ class LoginCase(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
 
 
-class LogoutTestCase(TestCase):
-    def setUp(self):
-        self.client = AsyncClient()
-
+class LogoutTestCase(AuthTestsMixin, TestCase):
     async def test_authenticated_user_can_logout(self):
-        user = User.objects.create_user(
-            username='test_user',
-            password='password',
-        )
-        await self.client.aforce_login(user)
+        user = await self._create_user()
 
+        await self.client.aforce_login(user)
         response = await self.client.post(reverse('api:logout'))
         self.assertEqual(response.status_code, HTTPStatus.OK)
         session = await self.client.asession()

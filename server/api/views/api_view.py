@@ -1,100 +1,17 @@
-import asyncio
 from collections.abc import Iterable, Sequence
-from dataclasses import is_dataclass
 import functools
-from http import HTTPStatus
-import json
-import typing
-from typing import Callable, Literal, override
+from typing import Callable
 
-import dacite
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import HttpRequest, HttpResponse
 
 from api.permissions.permission_protocol import Permission
-
-Methods = Literal['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS']
-
-
-class Checker(typing.Protocol):
-    async def check(self, request: HttpRequest) -> bool: ...
-    def on_failure_response(self) -> HttpResponse: ...
-
-
-class PermissionsChecker(Checker):
-    """
-    Applies permissions checks.
-    It doesn't guarantee to follow the order in which permissions were passed.
-    """
-
-    def __init__(self, permissions: Iterable[Permission]):
-        self._permissions = permissions
-
-    @override
-    async def check(self, request: HttpRequest) -> bool:
-        tasks = [permission.check(request) for permission in self._permissions]
-        for result in asyncio.as_completed(tasks):
-            if not await result:
-                return False
-
-        return True
-
-    @override
-    def on_failure_response(self) -> HttpResponse:
-        return JsonResponse(
-            data={'error': 'Permission denied'},
-            status=HTTPStatus.FORBIDDEN,
-        )
-
-
-class MethodsChecker(Checker):
-    def __init__(self, methods: Sequence[Methods]):
-        self._allowed_methods: Sequence[Methods] = methods
-
-    @override
-    async def check(self, request: HttpRequest) -> bool:
-        return request.method in self._allowed_methods
-
-    @override
-    def on_failure_response(self) -> HttpResponse:
-        return JsonResponse(
-            data={'error': 'Method not allowed'},
-            status=HTTPStatus.METHOD_NOT_ALLOWED,
-        )
-
-
-class RequestSchemaChecker(Checker):
-    def __init__(self, request_schema: type):
-        if not (
-            is_dataclass(request_schema) and isinstance(request_schema, type)
-        ):
-            raise TypeError('Expected a dataclass')
-
-        self._request_schema = request_schema
-        self._error: str | None = None
-
-    @override
-    async def check(self, request: HttpRequest) -> bool:
-        request_data = json.loads(request.body)
-        try:
-            populated_schema = dacite.from_dict(
-                data_class=self._request_schema,
-                data=request_data,
-            )
-            request.populated_schema = populated_schema
-            return True
-        except dacite.WrongTypeError as e:
-            self._error = str(e)
-            return False
-        except dacite.MissingValueError as e:
-            self._error = str(e)
-            return False
-
-    @override
-    def on_failure_response(self) -> HttpResponse:
-        return JsonResponse(
-            data={'error': self._error},
-            status=HTTPStatus.BAD_REQUEST,
-        )
+from api.request_checkers import (
+    MethodsChecker,
+    PermissionsChecker,
+    SchemaChecker,
+)
+from api.request_checkers.checker_protocol import Checker
+from api.request_checkers.methods_checker import Methods
 
 
 class api_view:  # noqa: N801
@@ -127,8 +44,12 @@ class api_view:  # noqa: N801
     ):
         self._methods = methods
         self._permissions = permissions
-        self._checkers = checkers
+        self._user_checkers = checkers
         self._request_schema = request_schema
+
+        # Collect checkers on init so we don't have to
+        # do this on every decorated function call
+        self._all_checkers = self._get_checkers()
 
     def __init__(
         self,
@@ -158,7 +79,7 @@ class api_view:  # noqa: N801
         return wrapped_f
 
     async def _apply_checks(self, request: HttpRequest) -> HttpResponse | None:
-        for checker in self._get_checkers():
+        for checker in self._all_checkers:
             if not await checker.check(request):
                 return checker.on_failure_response()
 
@@ -175,9 +96,9 @@ class api_view:  # noqa: N801
             checkers.append(PermissionsChecker(self._permissions))
 
         if self._request_schema is not None:
-            checkers.append(RequestSchemaChecker(self._request_schema))
+            checkers.append(SchemaChecker(self._request_schema))
 
-        if self._checkers is not None:
-            checkers += self._checkers
+        if self._user_checkers is not None:
+            checkers += self._user_checkers
 
         return checkers
