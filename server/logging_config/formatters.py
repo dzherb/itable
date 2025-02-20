@@ -1,5 +1,5 @@
-import dataclasses
 from collections.abc import Callable
+import dataclasses
 import datetime
 import functools
 import json
@@ -42,11 +42,11 @@ class _LogDictBuilder:
     def __init__(
         self,
         record: logging.LogRecord,
-        fields_to_use: dict[str, str],
+        fields_to_add: dict[str, str],
         formatter: logging.Formatter,
     ):
         self._record = record
-        self._fields_to_use = fields_to_use
+        self._fields_to_add = fields_to_add
         self._formatter = formatter
         self._log_dict: _LogDict = {}
 
@@ -66,6 +66,17 @@ class _LogDictBuilder:
         dt = datetime.datetime.fromtimestamp(self._record.created)
         return timezone.make_aware(dt).isoformat()
 
+    def _add_user_configured_fields(self):
+        for json_field, log_attribute in self._fields_to_add.items():
+            if json_field not in self._log_dict and hasattr(
+                self._record,
+                log_attribute,
+            ):
+                self._log_dict[json_field] = getattr(
+                    self._record,
+                    log_attribute,
+                )
+
     def _add_traceback_and_stack_info(self):
         if self._record.exc_text:
             self._log_dict['traceback'] = self._record.exc_text
@@ -78,17 +89,6 @@ class _LogDictBuilder:
             self._log_dict['stack_info'] = self._formatter.formatStack(
                 self._record.stack_info,
             )
-
-    def _add_user_configured_fields(self):
-        for json_field, log_attribute in self._fields_to_use.items():
-            if json_field not in self._log_dict and hasattr(
-                self._record,
-                log_attribute,
-            ):
-                self._log_dict[json_field] = getattr(
-                    self._record,
-                    log_attribute,
-                )
 
     def _add_extra_fields(self):
         for key, val in self._record.__dict__.items():
@@ -113,7 +113,7 @@ def _avoid_unnecessary_format_calls(
 
     @functools.wraps(fn)
     def wrapper(self: logging.Formatter, record: logging.LogRecord):
-        record_hash = hash(record)
+        record_hash = hash(record) + hash(record.created)
         if cache.last_record_hash == record_hash:
             return cache.last_returned_message
 
@@ -131,24 +131,23 @@ class JSONFormatter(logging.Formatter):
     def __init__(
         self,
         *,
-        fields_to_use: dict[str, str] | None = None,
+        fields_to_add: dict[str, str] | None = None,
         sort_keys: bool = False,
     ):
         super().__init__()
-        if fields_to_use is None:
-            fields_to_use = {}
+        if fields_to_add is None:
+            fields_to_add = {}
 
-        self._fields_to_use = fields_to_use
+        self._fields_to_add = fields_to_add
         self._sort_keys = sort_keys
 
     @override
     @_avoid_unnecessary_format_calls
     def format(self, record: logging.LogRecord) -> str:
-        print('call______')
         log_dict = _LogDictBuilder(
             record=record,
             formatter=self,
-            fields_to_use=self._fields_to_use,
+            fields_to_add=self._fields_to_add,
         ).build()
 
         return json.dumps(log_dict, default=str, sort_keys=self._sort_keys)

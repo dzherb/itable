@@ -104,5 +104,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Ugly solution to pass BASE_DIR to the setup_logging function.
+# Unfortunately Django doesn't give much flexibility
+# with the LOGGING_CONFIG callable path.
 LOGGING = BASE_DIR
 LOGGING_CONFIG = 'logging_config.setup_logging.setup_logging'

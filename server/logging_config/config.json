@@ -8,7 +8,7 @@
     },
     "json": {
       "()": "logging_config.formatters.JSONFormatter",
-      "fields_to_use": {
+      "fields_to_add": {
         "level": "levelname",
         "message": "message",
         "timestamp": "timestamp",
@@ -45,6 +45,7 @@
     "file_json": {
       "class": "logging.handlers.RotatingFileHandler",
       "level": "INFO",
+      "filters": ["require_debug_false"],
       "formatter": "json",
       "filename": "logs/itable.log.jsonl",
       "maxBytes": 3145728,
