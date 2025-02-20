@@ -1,4 +1,5 @@
 import typing
+from typing import override
 
 import aiohttp
 import aiomoex
@@ -22,6 +23,7 @@ class ISSClientFactory(typing.Protocol):
 class ISSClientFactoryImpl(ISSClientFactory):
     BASE_URL = 'https://iss.moex.com/iss'
 
+    @override
     def get_client(
         self,
         session: aiohttp.ClientSession,

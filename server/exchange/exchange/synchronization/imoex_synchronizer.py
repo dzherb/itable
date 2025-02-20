@@ -1,3 +1,5 @@
+from typing import override, final
+
 from exchange.exchange.synchronization.index_providers import (
     IndexProviderProtocol,
 )
@@ -12,12 +14,14 @@ import investment_tables.models
 from utils.db_helpers import aatomic
 
 
+@final
 class IMOEXSynchronizer(IndexSynchronizerProtocol):
     IMOEX_TABLE_TEMPLATE_SLUG = 'imoex'
 
     def __init__(self, *, provider: IndexProviderProtocol | None = None):
         self._provider = provider or IMOEXProvider()
 
+    @override
     @aatomic
     async def synchronize(self):
         securities = await self._provider.get_index_content()

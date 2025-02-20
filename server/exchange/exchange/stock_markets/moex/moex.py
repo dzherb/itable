@@ -1,5 +1,6 @@
 import asyncio
 from collections.abc import Iterable
+from typing import override
 
 import aiohttp
 import aiomoex
@@ -25,6 +26,7 @@ class MOEX(StockMarketProtocol):
         self._tickers: set[str] | None = None
         self._result: dict[str, SecurityDict] = {}
 
+    @override
     async def get_securities(
         self,
         tickers: Iterable[str],

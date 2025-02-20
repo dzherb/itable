@@ -1,3 +1,5 @@
+from typing import final, override
+
 import aiohttp
 
 from exchange.exchange.stock_markets.moex.iss_client import (
@@ -10,12 +12,14 @@ from exchange.exchange.synchronization.index_providers import (
 )
 
 
+@final
 class IMOEXProvider(IndexProviderProtocol):
     def __init__(self, *, client_factory: ISSClientFactory | None = None):
         self._client_factory = client_factory or ISSClientFactoryImpl()
         self._session = None
         self._result: list[SecurityWeightDict] = []
 
+    @override
     async def get_index_content(self) -> list[SecurityWeightDict]:
         async with aiohttp.ClientSession() as session:
             self._session = session

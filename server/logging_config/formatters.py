@@ -37,6 +37,63 @@ LOG_RECORD_BUILTIN_ATTRS = {
 _LogDict = dict[str, str | int | float | None]
 
 
+def _avoid_unnecessary_format_calls(
+    fn: Callable[[logging.Formatter, logging.LogRecord], str],
+) -> Callable[[logging.Formatter, logging.LogRecord], str]:
+    # RotatingFileHandler calls format twice
+    # when used with maxBytes argument.
+    # So for this case we can cache the last call
+    # as a little optimization.
+
+    @dataclasses.dataclass
+    class Cache:
+        last_record_hash: int | None = None
+        last_returned_message: str | None = None
+
+    cache = Cache()
+
+    @functools.wraps(fn)
+    def wrapper(self: logging.Formatter, record: logging.LogRecord):
+        record_hash = hash(record) + hash(record.created)
+        if cache.last_record_hash == record_hash:
+            return cache.last_returned_message
+
+        message = fn(self, record)
+
+        cache.last_record_hash = record_hash
+        cache.last_returned_message = message
+
+        return cache.last_returned_message
+
+    return wrapper
+
+
+class JSONFormatter(logging.Formatter):
+    def __init__(
+        self,
+        *,
+        fields_to_add: dict[str, str] | None = None,
+        sort_keys: bool = False,
+    ):
+        super().__init__()
+        if fields_to_add is None:
+            fields_to_add = {}
+
+        self._fields_to_add = fields_to_add
+        self._sort_keys = sort_keys
+
+    @override
+    @_avoid_unnecessary_format_calls
+    def format(self, record: logging.LogRecord) -> str:
+        log_dict = _LogDictBuilder(
+            record=record,
+            formatter=self,
+            fields_to_add=self._fields_to_add,
+        ).build()
+
+        return json.dumps(log_dict, default=str, sort_keys=self._sort_keys)
+
+
 @final
 class _LogDictBuilder:
     def __init__(
@@ -94,60 +151,3 @@ class _LogDictBuilder:
         for key, val in self._record.__dict__.items():
             if key not in LOG_RECORD_BUILTIN_ATTRS:
                 self._log_dict[key] = val
-
-
-def _avoid_unnecessary_format_calls(
-    fn: Callable[[logging.Formatter, logging.LogRecord], str],
-) -> Callable[[logging.Formatter, logging.LogRecord], str]:
-    # RotatingFileHandler calls format twice
-    # when used with maxBytes argument.
-    # So for this case we can cache the last call
-    # as a little optimization.
-
-    @dataclasses.dataclass
-    class Cache:
-        last_record_hash: int | None = None
-        last_returned_message: str | None = None
-
-    cache = Cache()
-
-    @functools.wraps(fn)
-    def wrapper(self: logging.Formatter, record: logging.LogRecord):
-        record_hash = hash(record) + hash(record.created)
-        if cache.last_record_hash == record_hash:
-            return cache.last_returned_message
-
-        message = fn(self, record)
-
-        cache.last_record_hash = record_hash
-        cache.last_returned_message = message
-
-        return cache.last_returned_message
-
-    return wrapper
-
-
-class JSONFormatter(logging.Formatter):
-    def __init__(
-        self,
-        *,
-        fields_to_add: dict[str, str] | None = None,
-        sort_keys: bool = False,
-    ):
-        super().__init__()
-        if fields_to_add is None:
-            fields_to_add = {}
-
-        self._fields_to_add = fields_to_add
-        self._sort_keys = sort_keys
-
-    @override
-    @_avoid_unnecessary_format_calls
-    def format(self, record: logging.LogRecord) -> str:
-        log_dict = _LogDictBuilder(
-            record=record,
-            formatter=self,
-            fields_to_add=self._fields_to_add,
-        ).build()
-
-        return json.dumps(log_dict, default=str, sort_keys=self._sort_keys)
