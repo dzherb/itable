@@ -3,12 +3,12 @@
   "disable_existing_loggers": false,
   "formatters": {
     "simple": {
-      "format": "[%(levelname)s|%(module)s|L%(lineno)d] %(asctime)s: %(message)s",
+      "format": "[%(levelname)s|%(module)s|%(lineno)d] %(asctime)s: %(message)s",
       "datefmt": "%Y-%m-%dT%H:%M:%S%z"
     },
     "json": {
-      "()": "logging_config.json_formatter.JSONFormatter",
-      "fmt_keys": {
+      "()": "logging_config.formatters.JSONFormatter",
+      "fields_to_use": {
         "level": "levelname",
         "message": "message",
         "timestamp": "timestamp",
@@ -20,12 +20,27 @@
       }
     }
   },
+  "filters": {
+    "require_debug_false": {
+      "()": "django.utils.log.RequireDebugFalse"
+    },
+    "non_error_filter": {
+      "()": "logging_config.filters.NonErrorFilter"
+    }
+  },
   "handlers": {
     "stderr": {
       "class": "logging.StreamHandler",
       "level": "WARNING",
       "formatter": "simple",
       "stream": "ext://sys.stderr"
+    },
+    "stdout": {
+      "class": "logging.StreamHandler",
+      "level": "INFO",
+      "filters": ["non_error_filter"],
+      "formatter": "simple",
+      "stream": "ext://sys.stdout"
     },
     "file_json": {
       "class": "logging.handlers.RotatingFileHandler",
@@ -36,10 +51,11 @@
       "backupCount": 8
     },
     "queue_handler": {
-      "class": "logging_config.json_aware_queue_handler.JSONAwareQueueHandler",
+      "class": "logging_config.handlers.JSONAwareQueueHandler",
       "handlers": [
         "file_json",
-        "stderr"
+        "stderr",
+        "stdout"
       ],
       "respect_handler_level": true
     }
