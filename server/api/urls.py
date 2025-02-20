@@ -10,6 +10,7 @@ urlpatterns = [
         include(
             [
                 path('login/', views.auth.login, name='login'),
+                path('logout/', views.auth.logout, name='logout'),
             ],
         ),
     ),

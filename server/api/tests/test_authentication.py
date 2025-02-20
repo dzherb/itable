@@ -44,3 +44,24 @@ class LoginCase(TestCase):
             content_type='application/json',
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+
+
+class LogoutTestCase(TestCase):
+    def setUp(self):
+        self.client = AsyncClient()
+
+    async def test_authenticated_user_can_logout(self):
+        user = User.objects.create_user(
+            username='test_user',
+            password='password',
+        )
+        await self.client.aforce_login(user)
+
+        response = await self.client.post(reverse('api:logout'))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        session = await self.client.asession()
+        self.assertEqual(await session.aget('_auth_user_id'), None)
+
+    async def test_anonymous_user_can_logout(self):
+        response = await self.client.post(reverse('api:logout'))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
