@@ -47,12 +47,15 @@ class JSONLoggingTestCase(TestCase):
             },
         )
 
+        logging.disable(logging.NOTSET)
+
         self.logger = logging.getLogger('')
 
     def tearDown(self):
         super().tearDown()
         self.stream.close()
         setup_logging(settings.BASE_DIR)
+        logging.disable(logging.CRITICAL)
 
     def test_json_log_fields(self):
         self.logger.error('test message')

@@ -1,3 +1,4 @@
+import dataclasses
 from http import HTTPStatus
 import json
 from typing import override
@@ -115,7 +116,8 @@ class APIViewTestCase(TestCase):
             return JsonResponse({'message': 'hello world'})
 
         valid_request = self.factory.get(
-            '/hello_world', headers={'Accept-Charset': 'utf-8'},
+            '/hello_world',
+            headers={'Accept-Charset': 'utf-8'},
         )
         response = await hello_world(valid_request)
         content = json.loads(response.content)
@@ -129,3 +131,63 @@ class APIViewTestCase(TestCase):
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(content['error'], 'Expected Accept-Charset header')
+
+
+@dataclasses.dataclass
+class UserLoginSchema:
+    username: str
+    password: str
+    age: int | None
+
+
+class APIViewSchemaTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.factory = AsyncRequestFactory()
+
+        @api_view(methods=['POST'], request_schema=UserLoginSchema)
+        async def echo(request):
+            user_login = request.populated_schema
+            return JsonResponse(dataclasses.asdict(user_login))
+
+        cls.echo_handler = echo
+
+    async def test_request_body_populates_the_schema(self):
+        valid_request_data = [
+            {'username': 'test_user', 'password': 'password'},
+            {'username': 'test_user', 'password': 'password', 'age': 20},
+        ]
+
+        for request_data in valid_request_data:
+            with self.subTest(request_data=request_data):
+                request = self.factory.post(
+                    '/echo',
+                    data=request_data,
+                    content_type='application/json',
+                )
+                response = await self.echo_handler(request)
+                content = json.loads(response.content)
+
+                self.assertEqual(response.status_code, HTTPStatus.OK)
+                for key, value in request_data.items():
+                    self.assertEqual(content[key], value)
+
+    async def test_api_view_returns_error_on_invalid_data(self):
+        wrong_request_data = [
+            {'username': 'test_user'},
+            {'username': 'test_user', 'password': 123456},
+            {'username1': 'test_user', 'password': '123456'},
+        ]
+
+        for request_data in wrong_request_data:
+            with self.subTest(request_data=request_data):
+                request = self.factory.post(
+                    '/echo',
+                    data=request_data,
+                    content_type='application/json',
+                )
+                response = await self.echo_handler(request)
+                content = json.loads(response.content)
+
+                self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+                self.assertIn('error', content)

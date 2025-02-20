@@ -1,10 +1,13 @@
 import asyncio
 from collections.abc import Iterable, Sequence
+from dataclasses import is_dataclass
 import functools
 from http import HTTPStatus
+import json
 import typing
 from typing import Callable, Literal, override
 
+import dacite
 from django.http import HttpRequest, HttpResponse, JsonResponse
 
 from api.permissions.permission_protocol import Permission
@@ -59,6 +62,41 @@ class MethodsChecker(Checker):
         )
 
 
+class RequestSchemaChecker(Checker):
+    def __init__(self, request_schema: type):
+        if not (
+            is_dataclass(request_schema) and isinstance(request_schema, type)
+        ):
+            raise TypeError('Expected a dataclass')
+
+        self._request_schema = request_schema
+        self._error: str | None = None
+
+    @override
+    async def check(self, request: HttpRequest) -> bool:
+        request_data = json.loads(request.body)
+        try:
+            populated_schema = dacite.from_dict(
+                data_class=self._request_schema,
+                data=request_data,
+            )
+            request.populated_schema = populated_schema
+            return True
+        except dacite.WrongTypeError as e:
+            self._error = str(e)
+            return False
+        except dacite.MissingValueError as e:
+            self._error = str(e)
+            return False
+
+    @override
+    def on_failure_response(self) -> HttpResponse:
+        return JsonResponse(
+            data={'error': self._error},
+            status=HTTPStatus.BAD_REQUEST,
+        )
+
+
 class api_view:  # noqa: N801
     DEFAULT_HTTP_METHOD: Methods = 'GET'
 
@@ -84,17 +122,20 @@ class api_view:  # noqa: N801
         *,
         methods: Sequence[Methods] | None = None,
         permissions: Iterable[Permission] | None = None,
+        request_schema: type | None = None,
         checkers: Iterable[Checker] | None = None,
     ):
         self._methods = methods
         self._permissions = permissions
         self._checkers = checkers
+        self._request_schema = request_schema
 
     def __init__(
         self,
         *,
         methods: Sequence[Methods] | None = None,
         permissions: Iterable[Permission] | None = None,
+        request_schema: type | None = None,
         checkers: Iterable[Checker] | None = None,
     ):
         # We don't really need this method,
@@ -132,6 +173,9 @@ class api_view:  # noqa: N801
 
         if self._permissions is not None:
             checkers.append(PermissionsChecker(self._permissions))
+
+        if self._request_schema is not None:
+            checkers.append(RequestSchemaChecker(self._request_schema))
 
         if self._checkers is not None:
             checkers += self._checkers
