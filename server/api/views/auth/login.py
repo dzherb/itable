@@ -30,7 +30,11 @@ async def login(request):
         logger.info('User logged in', extra={'user_id': user.id})
         return JsonResponse({})
 
+    logger.info(
+        'User failed to login',
+        extra={'user_agent': request.headers.get('User-Agent')},
+    )
     return JsonResponse(
-        {'error': 'Invalid credentials'},
+        {'error': 'invalid credentials'},
         status=HTTPStatus.UNAUTHORIZED,
     )
