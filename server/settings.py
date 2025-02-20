@@ -1,5 +1,7 @@
+import logging
 import os
 from pathlib import Path
+import sys
 
 from dotenv import load_dotenv
 
@@ -110,3 +112,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # with the LOGGING_CONFIG callable path.
 LOGGING = BASE_DIR
 LOGGING_CONFIG = 'logging_config.setup_logging.setup_logging'
+
+# Disable logging while running tests
+if len(sys.argv) > 1 and sys.argv[1] == 'test':
+    logging.disable(logging.CRITICAL)
