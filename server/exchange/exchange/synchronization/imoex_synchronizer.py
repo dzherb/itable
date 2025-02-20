@@ -1,4 +1,4 @@
-from typing import override, final
+from typing import final, override
 
 from exchange.exchange.synchronization.index_providers import (
     IndexProviderProtocol,
