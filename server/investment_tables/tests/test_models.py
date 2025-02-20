@@ -91,7 +91,7 @@ class TableSnapshotTestCase(TestCase):
             through_defaults={'weight': 32},
         )
 
-        cls.user = get_user_model().objects.create(
+        cls.user = get_user_model().objects.create_user(
             username='testuser',
             password='testpswd',
         )

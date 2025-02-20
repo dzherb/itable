@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'portfolio.apps.PortfolioConfig',
     'exchange.apps.ExchangeConfig',
     'utils.apps.UtilsConfig',
+    'api.apps.ApiConfig',
 ]
 
 MIDDLEWARE = [
