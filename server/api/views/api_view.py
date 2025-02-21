@@ -18,8 +18,6 @@ from api.request_checkers.methods_checker import Methods
 
 
 class api_view:  # noqa: N801
-    DEFAULT_HTTP_METHOD: Methods = 'GET'
-
     def __new__(
         cls,
         view_function: Callable | None = None,
@@ -111,8 +109,6 @@ class api_view:  # noqa: N801
         checkers = []
         if self._methods is not None:
             checkers.append(MethodsChecker(self._methods))
-        else:
-            checkers.append(MethodsChecker([self.DEFAULT_HTTP_METHOD]))
 
         if self._login_required:
             checkers.append(AuthenticationChecker())

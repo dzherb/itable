@@ -20,6 +20,7 @@ class PortfolioItem(CreatedUpdatedAbstractModel, models.Model):
 
     class Meta:
         unique_together = (('portfolio', 'security'),)
+        ordering = ('created_at',)
 
     def __str__(self):
         return f'{self.portfolio} - {self.security}'

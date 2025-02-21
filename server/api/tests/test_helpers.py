@@ -1,0 +1,341 @@
+import dataclasses
+import datetime
+from http import HTTPStatus
+import json
+
+from asgiref.sync import sync_to_async
+from django.contrib.auth import get_user_model
+from django.http import JsonResponse
+from django.test import RequestFactory, TestCase
+from django.utils import timezone
+
+from api.helpers import Dispatcher
+from api.helpers.model_converters import (
+    ModelToDataclassConverter,
+)
+from api.views.api_view import api_view
+from exchange.models import Security
+from portfolio.models import Portfolio, PortfolioItem
+
+User = get_user_model()
+
+
+@api_view
+async def _get_handler(request):
+    return JsonResponse({'method': 'GET'})
+
+
+@api_view
+async def _post_handler(request):
+    return JsonResponse({'method': 'POST'})
+
+
+@api_view
+async def _delete_handler(request):
+    return JsonResponse({'method': 'DELETE'})
+
+
+class DispatcherTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.factory = RequestFactory()
+
+    def _assertMethodInResponse(self, response, method):  # noqa N802
+        content = json.loads(response.content)
+        self.assertEqual(content['method'], method)
+
+    async def test_dispatcher_handles_different_methods(self):
+        dispatcher = Dispatcher(
+            get=_get_handler,
+            post=_post_handler,
+            delete=_delete_handler,
+        )
+        dispatcher_view = dispatcher.as_view()
+
+        request = self.factory.get('/handler')
+        response = await dispatcher_view(request)
+        self._assertMethodInResponse(response, 'GET')
+
+        request = self.factory.post('/handler')
+        response = await dispatcher_view(request)
+        self._assertMethodInResponse(response, 'POST')
+
+        request = self.factory.delete('/handler')
+        response = await dispatcher_view(request)
+        self._assertMethodInResponse(response, 'DELETE')
+
+    async def test_dispatcher_returns_method_not_allowed(self):
+        dispatcher = Dispatcher(get=_get_handler)
+        dispatcher_view = dispatcher.as_view()
+
+        request = self.factory.post('/handler')
+        response = await dispatcher_view(request)
+        self.assertEqual(response.status_code, HTTPStatus.METHOD_NOT_ALLOWED)
+
+
+class ModelToDataclassConverterTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.security = Security.objects.create(ticker='AAPL')
+
+    async def test_model_to_dataclass_full_convertion(self):
+        @dataclasses.dataclass
+        class Schema:
+            id: int
+            ticker: str
+            created_at: datetime.datetime
+            updated_at: datetime.datetime
+
+        converter = ModelToDataclassConverter(
+            source=self.security,
+            schema=Schema,
+        )
+        dataclass_instance: Schema = await converter.convert()
+
+        self.assertEqual(dataclass_instance.id, self.security.id)
+        self.assertEqual(dataclass_instance.ticker, 'AAPL')
+        self.assertIsInstance(dataclass_instance.created_at, datetime.datetime)
+        self.assertIsInstance(dataclass_instance.updated_at, datetime.datetime)
+
+    async def test_model_to_dataclass_partial_conversion(self):
+        @dataclasses.dataclass
+        class Schema:
+            ticker: str
+
+        converter = ModelToDataclassConverter(
+            source=self.security,
+            schema=Schema,
+        )
+        dataclass_instance: Schema = await converter.convert()
+
+        self.assertFalse(hasattr(dataclass_instance, 'id'))
+        self.assertFalse(hasattr(dataclass_instance, 'created_at'))
+        self.assertFalse(hasattr(dataclass_instance, 'updated_at'))
+        self.assertEqual(dataclass_instance.ticker, 'AAPL')
+
+    async def test_model_to_dataclass_impossible_conversion(self):
+        @dataclasses.dataclass
+        class Schema:
+            id: int
+            nonexistent_field: str
+
+        converter = ModelToDataclassConverter(
+            source=self.security,
+            schema=Schema,
+        )
+
+        with self.assertRaises(AttributeError):
+            await converter.convert()
+
+    async def test_model_to_dataclass_invalid_type_conversion(self):
+        @dataclasses.dataclass
+        class Schema:
+            id: str
+            ticker: str
+
+        converter = ModelToDataclassConverter(
+            source=self.security,
+            schema=Schema,
+        )
+
+        with self.assertRaises(TypeError):
+            await converter.convert()
+
+    async def test_model_to_dataclass_mapping_fields_conversion(self):
+        @dataclasses.dataclass
+        class Schema:
+            id: int
+            name: str
+            created: datetime.datetime
+
+        converter = ModelToDataclassConverter(
+            source=self.security,
+            schema=Schema,
+            fields_map={
+                'name': 'ticker',
+                'created': 'created_at',
+            },
+        )
+        dataclass_instance: Schema = await converter.convert()
+        self.assertEqual(dataclass_instance.id, 1)
+        self.assertEqual(dataclass_instance.name, 'AAPL')
+        self.assertIsInstance(dataclass_instance.created, datetime.datetime)
+
+    async def test_model_to_dataclass_complex_field_lookups_conversion(self):
+        @dataclasses.dataclass
+        class Schema:
+            ticker: str
+            quantity: int
+            portfolio_name: str
+            owner_username: str
+
+        user = await sync_to_async(User.objects.create_user)(
+            username='test_user',
+            password='password',
+        )
+        portfolio = await Portfolio.objects.acreate(
+            name='Test Portfolio',
+            owner=user,
+        )
+        await portfolio.securities.aadd(
+            self.security,
+            through_defaults={'quantity': 5},
+        )
+
+        converter = ModelToDataclassConverter(
+            source=await PortfolioItem.objects.select_related(
+                'security',
+                'portfolio',
+                'portfolio__owner',
+            ).afirst(),
+            schema=Schema,
+            fields_map={
+                'ticker': 'security__ticker',
+                'quantity': 'quantity',
+                'portfolio_name': 'portfolio__name',
+                'owner_username': 'portfolio__owner__username',
+            },
+        )
+        dataclass_instance: Schema = await converter.convert()
+        self.assertEqual(dataclass_instance.ticker, 'AAPL')
+        self.assertEqual(dataclass_instance.quantity, 5)
+        self.assertEqual(dataclass_instance.portfolio_name, 'Test Portfolio')
+        self.assertEqual(dataclass_instance.owner_username, 'test_user')
+
+    async def test_model_to_dataclass_handles_optional_fields(self):
+        @dataclasses.dataclass
+        class Schema:
+            id: int
+            name: str | None
+
+        class ModelMock:
+            def __init__(self):
+                self.id = 1
+                self.name = None
+
+        converter = ModelToDataclassConverter(
+            source=ModelMock(),
+            schema=Schema,
+        )
+        dataclass_instance = await converter.convert()
+        self.assertEqual(dataclass_instance.id, 1)
+        self.assertIsNone(dataclass_instance.name)
+
+    async def test_model_to_dataclass_handles_union_fields(self):
+        @dataclasses.dataclass
+        class Schema:
+            id: int
+            name: str | int | dict
+
+        class ModelMock1:
+            def __init__(self):
+                self.id = 1
+                self.name = 'name'
+
+        class ModelMock2:
+            def __init__(self):
+                self.id = 1
+                self.name = 123
+
+        class ModelMock3:
+            def __init__(self):
+                self.id = 1
+                self.name = None
+
+        converter = ModelToDataclassConverter(
+            source=ModelMock1(),
+            schema=Schema,
+        )
+        dataclass_instance = await converter.convert()
+        self.assertEqual(dataclass_instance.name, 'name')
+
+        converter = ModelToDataclassConverter(
+            source=ModelMock2(),
+            schema=Schema,
+        )
+        dataclass_instance = await converter.convert()
+        self.assertEqual(dataclass_instance.name, 123)
+
+        with self.assertRaises(TypeError):
+            await ModelToDataclassConverter(
+                source=ModelMock3(),
+                schema=Schema,
+            ).convert()
+
+    async def test_model_to_dataclass_keeps_timezone(self):
+        @dataclasses.dataclass
+        class Schema:
+            id: int
+            created: datetime.datetime
+
+        class ModelMock:
+            def __init__(self):
+                self.id = 1
+                self.created = timezone.now()
+
+        converter = ModelToDataclassConverter(
+            source=ModelMock(),
+            schema=Schema,
+        )
+
+        dataclass_instance = await converter.convert()
+        self.assertTrue(timezone.is_aware(dataclass_instance.created))
+
+    async def test_model_to_dataclass_nested_conversion(self):
+        @dataclasses.dataclass
+        class ChildSchema:
+            id: int
+            name: str
+
+        @dataclasses.dataclass
+        class ParentSchema:
+            id: int
+            name: str
+            child: ChildSchema
+
+        class ChildModelMock:
+            def __init__(self):
+                self.id = 2
+                self.name = 'child name'
+
+        class ParentModelMock:
+            def __init__(self):
+                self.id = 1
+                self.name = 'parent name'
+
+        converter = ModelToDataclassConverter(
+            source=ParentModelMock(),
+            schema=ParentSchema,
+            fields_map={
+                'child': ModelToDataclassConverter(
+                    source=ChildModelMock(),
+                    schema=ChildSchema,
+                ),
+            },
+        )
+        parent: ParentSchema = await converter.convert()
+        self.assertEqual(parent.id, 1)
+        self.assertEqual(parent.name, 'parent name')
+        self.assertEqual(parent.child.id, 2)
+        self.assertEqual(parent.child.name, 'child name')
+
+    async def test_model_to_dataclass_many_conversion(self):
+        @dataclasses.dataclass
+        class SecuritySchema:
+            id: int
+            ticker: str
+
+        await Security.objects.acreate(ticker='SBER')
+        await Security.objects.acreate(ticker='T')
+
+        converter = ModelToDataclassConverter(
+            source=Security.objects.all(),
+            schema=SecuritySchema,
+            many=True,
+        )
+        securities = await converter.convert()
+
+        self.assertEqual(len(securities), 3)
+        self.assertEqual(securities[0].ticker, 'AAPL')
+        self.assertEqual(securities[1].ticker, 'SBER')
+        self.assertEqual(securities[2].ticker, 'T')
