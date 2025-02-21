@@ -50,10 +50,8 @@ class SchemaChecker(Checker):
 
     @override
     async def check(self, request: HttpRequest, *args, **kwargs) -> bool:
-        # Is request.body a blocking I/O operation?
-        # Seems like currently there is no way to read it asynchronously.
-        request_data = json.loads(request.body)
         try:
+            request_data = self._get_request_data(request)
             populated_schema = dacite.from_dict(
                 data_class=self._request_schema,
                 data=request_data,
@@ -70,6 +68,17 @@ class SchemaChecker(Checker):
         except ValueError as e:
             self._error = str(e)
             return False
+
+    def _get_request_data(self, request):
+        if request.method == 'GET':
+            return dict(request.GET)
+
+        # Is request.body a blocking I/O operation?
+        # Seems like currently there is no way to read it asynchronously.
+        try:
+            return json.loads(request.body)
+        except json.JSONDecodeError as e:
+            raise ValueError('request body contains invalid json') from e
 
     @override
     def on_failure_response(self) -> HttpResponse:

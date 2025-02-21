@@ -217,6 +217,18 @@ class APIViewSchemaTestCase(TestCase):
                 self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
                 self.assertIn('error', content)
 
+    async def test_api_view_handles_invalid_json(self):
+        request = self.factory.generic(
+            method='POST',
+            path='/echo',
+            data='{"id": 15',
+            content_type='application/json',
+        )
+        response = await self.echo_handler(request)
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertIn('error', content)
+
 
 @dataclasses.dataclass
 class UserSchemaWithValidators:

@@ -20,4 +20,5 @@ urlpatterns = [
         views.portfolios.portfolio_dispatcher.as_view(),
         name='portfolio',
     ),
+    path('securities/', views.securities.security_list, name='securities'),
 ]
