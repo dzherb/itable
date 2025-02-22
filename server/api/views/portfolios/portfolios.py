@@ -1,5 +1,6 @@
 import dataclasses
 import datetime
+import logging
 
 from django.http import JsonResponse
 
@@ -11,6 +12,8 @@ from api.helpers.model_converters import (
 from api.permissions import IsPortfolioOwner
 from api.views.api_view import api_view
 from portfolio.models import Portfolio
+
+logger = logging.getLogger('api')
 
 
 @dataclasses.dataclass
@@ -61,6 +64,10 @@ async def delete_portfolio(request, pk: int):
     )
     portfolio.is_active = False
     await portfolio.asave()
+    logger.info(
+        'User deleted a portfolio',
+        extra={'portfolio_id': portfolio.id, 'user_id': request.user.id},
+    )
     return JsonResponse({})
 
 

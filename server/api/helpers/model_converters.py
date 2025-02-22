@@ -43,7 +43,7 @@ class ModelToDataclassConverter(Converter):
             tasks = []
             result = []
             async for item in self._source:
-                tasks.append(self._convert_one(item))
+                tasks.append(asyncio.create_task(self._convert_one(item)))
 
             for task in await asyncio.gather(*tasks):
                 result.append(task)
