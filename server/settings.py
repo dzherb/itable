@@ -115,3 +115,6 @@ LOGGING_CONFIG = 'logging_config.setup_logging.setup_logging'
 # Disable logging while running tests
 if len(sys.argv) > 1 and sys.argv[1] == 'test':
     logging.disable(logging.CRITICAL)
+
+
+RUN_BACKGROUND_TASKS = os.getenv('RUN_BACKGROUND_TASKS', 'y') in TRUE_VALUES

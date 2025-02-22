@@ -5,12 +5,14 @@ description = ""
 requires-python = ">=3.13"
 dependencies = [
     "aiomoex>=2.1.2",
+    "apscheduler>=3.11.0",
     "async-lru>=2.0.4",
     "dacite>=1.9.2",
     "django>=5.1.6",
     "load-dotenv>=0.1.0",
     "psycopg[binary]>=3.2.4",
     "uvicorn>=0.34.0",
+    "uvloop>=0.21.0",
 ]
 
 [dependency-groups]
