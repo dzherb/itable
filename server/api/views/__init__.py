@@ -1,3 +1,3 @@
-from . import auth, portfolios, securities
+from . import auth, portfolios, securities, tables
 
-__all__ = ('auth', 'portfolios', 'securities')
+__all__ = ('auth', 'portfolios', 'securities', 'tables')

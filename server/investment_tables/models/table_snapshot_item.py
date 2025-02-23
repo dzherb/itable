@@ -22,7 +22,10 @@ class TableSnapshotItem(CreatedUpdatedAbstractModel, models.Model):
     class Meta:
         unique_together = (('snapshot', 'template_item'),)
         constraints = [
-            models.CheckConstraint(name='coefficient_is_not_negative', condition=models.Q(coefficient__gte=0)),
+            models.CheckConstraint(
+                name='coefficient_is_not_negative',
+                condition=models.Q(coefficient__gte=0),
+            ),
         ]
 
     def __str__(self):

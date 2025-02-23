@@ -17,8 +17,20 @@ urlpatterns = [
     path('portfolios/', views.portfolios.portfolio_list, name='portfolios'),
     path(
         'portfolios/<int:pk>/',
-        views.portfolios.portfolio_dispatcher.as_view(),
+        views.portfolios.dispatcher.as_view(),
         name='portfolio',
     ),
     path('securities/', views.securities.security_list, name='securities'),
+    path(
+        'tables/',
+        include(
+            [
+                path(
+                    'snapshots/',
+                    views.tables.snapshots.dispatcher.as_view(),
+                    name='table_snapshots',
+                ),
+            ],
+        ),
+    ),
 ]

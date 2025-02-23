@@ -1,24 +1,20 @@
+import abc
 import asyncio
 import dataclasses
 import typing
-from typing import override, runtime_checkable
+from typing import override
 
 from dacite.types import is_instance
 from django.db import models
 
 
-@runtime_checkable
-class Converter(typing.Protocol):
-    async def convert(self) -> typing.Any: ...
-
-
-class ModelToDataclassConverter(Converter):
+class Converter(abc.ABC):
     def __init__(
         self,
-        source: models.Model | models.QuerySet,
         schema,
+        source: models.Model | models.QuerySet | None = None,
         *,
-        fields_map: dict[str, str | Converter] | None = None,
+        fields_map: dict[str, typing.Union[str, 'Converter']] | None = None,
         skip_fields: typing.Sequence[str] | None = None,
         many: bool = False,
     ):
@@ -32,12 +28,28 @@ class ModelToDataclassConverter(Converter):
 
         if skip_fields is None:
             skip_fields = ()
+
         self._skip_fields = set(skip_fields)
 
         self._many = many
 
+    @abc.abstractmethod
+    async def convert(self) -> typing.Any: ...
+
+    def _set_source_if_empty(self, source):
+        if self._source is None:
+            self._source = source
+
+
+class ModelToDataclassConverter(Converter):
     @override
     async def convert(self) -> typing.Any:
+        if self._source is None:
+            raise AttributeError(
+                'Failed to automatically resole the source field, '
+                'you must explicitly set it on initialization',
+            )
+
         if self._many:
             assert isinstance(self._source, models.QuerySet)
             tasks = []
@@ -62,6 +74,7 @@ class ModelToDataclassConverter(Converter):
 
             lookup = self._fields_map.get(field_name) or field_name
             if isinstance(lookup, Converter):
+                lookup._set_source_if_empty(source)
                 init_kwargs[field_name] = await lookup.convert()
                 continue
 

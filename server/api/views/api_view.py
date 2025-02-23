@@ -84,10 +84,10 @@ class api_view:  # noqa: N801
                     return checks_result
 
                 return await decorated_function(request, *args, **kwargs)
-            except exceptions.NotFoundError:
+            except exceptions.NotFoundError as e:
                 # This way we can handle aget_object_or_404_json call
                 return JsonResponse(
-                    data={'error': 'not found'},
+                    data={'error': e.message},
                     status=HTTPStatus.NOT_FOUND,
                 )
 

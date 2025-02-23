@@ -12,7 +12,16 @@ if typing.TYPE_CHECKING:
     from portfolio.models import Portfolio
 
 
+class TableSnapshotQuerySet(models.QuerySet):
+    def active(self):
+        return self.filter(is_active=True)
+
+    def owned_by(self, user):
+        return self.filter(portfolio__owner=user)
+
+
 class TableSnapshot(CreatedUpdatedAbstractModel, models.Model):
+    name = models.CharField(max_length=255, default='')
     portfolio = models.ForeignKey(
         to='portfolio.Portfolio',
         on_delete=models.CASCADE,
@@ -32,8 +41,18 @@ class TableSnapshot(CreatedUpdatedAbstractModel, models.Model):
         related_query_name='snapshot',
     )
 
+    is_active = models.BooleanField(default=True)
+
+    objects = TableSnapshotQuerySet.as_manager()
+
     def __str__(self):
-        return f'{self.template.name} - {self.portfolio}'
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.name:
+            self.name = self.template.name
+
+        super().save(*args, **kwargs)
 
     @classmethod
     @aatomic
@@ -41,10 +60,12 @@ class TableSnapshot(CreatedUpdatedAbstractModel, models.Model):
         cls,
         template: 'TableTemplate',
         portfolio: 'Portfolio',
+        name: str | None = None,
     ) -> typing.Self:
         snapshot: TableSnapshot = await cls.objects.acreate(
             portfolio=portfolio,
             template=template,
+            name=name,
         )
 
         items_to_add = []

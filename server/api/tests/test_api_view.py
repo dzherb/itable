@@ -147,7 +147,11 @@ class APIViewTestCase(TestCase):
     async def test_not_found_exception_is_intercepted(self):
         @api_view
         async def user_handler(request):
-            user = await aget_object_or_404_json(User, pk=42)
+            user = await aget_object_or_404_json(
+                User,
+                pk=42,
+                object_error_name='user',
+            )
             return JsonResponse({'user_id': user.id})
 
         request = self.factory.get(path='/user_handler')
@@ -155,7 +159,7 @@ class APIViewTestCase(TestCase):
         content = json.loads(response.content)
 
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
-        self.assertEqual(content['error'], 'not found')
+        self.assertEqual(content['error'], 'user not found')
 
 
 @dataclasses.dataclass

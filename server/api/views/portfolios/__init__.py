@@ -1,3 +1,3 @@
-from .portfolios import portfolio_dispatcher, portfolio_list
+from .portfolios import dispatcher, portfolio_list
 
-__all__ = ('portfolio_dispatcher', 'portfolio_list')
+__all__ = ('dispatcher', 'portfolio_list')

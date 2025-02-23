@@ -76,7 +76,6 @@ class TableTemplateTestCase(TestCase):
         self.assertEqual(await self.table_template.securities.acount(), 1)
 
 
-
 class TableSnapshotTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -129,7 +128,9 @@ class TableSnapshotTestCase(TestCase):
             portfolio=self.portfolio,
         )
 
-        snapshot_item: investment_tables.models.TableSnapshotItem = await snapshot.items.aget(template_item__security__ticker='A')
+        snapshot_item: investment_tables.models.TableSnapshotItem = (
+            await snapshot.items.aget(template_item__security__ticker='A')
+        )
         self.assertEqual(snapshot_item.coefficient, 1)
 
     async def test_snapshot_item_coefficient_constraint(self):
@@ -138,7 +139,9 @@ class TableSnapshotTestCase(TestCase):
             portfolio=self.portfolio,
         )
 
-        snapshot_item: investment_tables.models.TableSnapshotItem = await snapshot.items.aget(template_item__security__ticker='A')
+        snapshot_item: investment_tables.models.TableSnapshotItem = (
+            await snapshot.items.aget(template_item__security__ticker='A')
+        )
         snapshot_item.coefficient = -1
 
         async with AsyncAtomic():
@@ -153,3 +156,20 @@ class TableSnapshotTestCase(TestCase):
 
         await snapshot_item.arefresh_from_db()
         self.assertEqual(snapshot_item.coefficient, 0)
+
+    async def test_snapshot_default_name_comes_from_template(self):
+        snapshot = await investment_tables.models.TableSnapshot.from_template(
+            template=self.table_template,
+            portfolio=self.portfolio,
+        )
+
+        self.assertEqual(snapshot.name, self.table_template.name)
+
+    async def test_can_create_snapshot_with_custom_name(self):
+        snapshot = await investment_tables.models.TableSnapshot.from_template(
+            template=self.table_template,
+            portfolio=self.portfolio,
+            name='custom snapshot name',
+        )
+
+        self.assertEqual(snapshot.name, 'custom snapshot name')

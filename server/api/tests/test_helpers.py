@@ -13,6 +13,7 @@ from api.helpers import Dispatcher
 from api.helpers.model_converters import (
     ModelToDataclassConverter,
 )
+from api.helpers.strings import undo_camel_case
 from api.views.api_view import api_view
 from exchange.models import Security
 from portfolio.models import Portfolio, PortfolioItem
@@ -339,3 +340,65 @@ class ModelToDataclassConverterTestCase(TestCase):
         self.assertEqual(securities[0].ticker, 'AAPL')
         self.assertEqual(securities[1].ticker, 'SBER')
         self.assertEqual(securities[2].ticker, 'T')
+
+    async def test_model_to_dataclass_auto_source(self):
+        user = await sync_to_async(User.objects.create_user)(
+            username='test_user',
+            password='password',
+        )
+        await Portfolio.objects.acreate(
+            name='Test Portfolio 1',
+            owner=user,
+        )
+        await Portfolio.objects.acreate(
+            name='Test Portfolio 2',
+            owner=user,
+        )
+
+        @dataclasses.dataclass
+        class UserSchema:
+            id: int
+            username: str
+
+        @dataclasses.dataclass
+        class PortfolioSchema:
+            id: int
+            name: str
+            owner: UserSchema
+
+        converter = ModelToDataclassConverter(
+            source=Portfolio.objects.select_related('owner'),
+            schema=PortfolioSchema,
+            fields_map={
+                'owner': ModelToDataclassConverter(
+                    schema=UserSchema,
+                    fields_map={
+                        'id': 'owner__id',
+                        'username': 'owner__username',
+                    },
+                ),
+            },
+            many=True,
+        )
+        portfolios = await converter.convert()
+        self.assertEqual(len(portfolios), 2)
+        self.assertEqual(portfolios[0].name, 'Test Portfolio 1')
+        self.assertEqual(portfolios[0].owner.username, 'test_user')
+
+
+class StringsHelpersTestCase(TestCase):
+    def test_undo_camel_case(self):
+        cases = (
+            ('CamelCase', 'Camel Case'),
+            ('moreComplexExample', 'more Complex Example'),
+            ('OldHTMLFile', 'Old HTML File'),
+            ('simpleBigURL', 'simple Big URL'),
+            ('SQLServer', 'SQL Server'),
+        )
+
+        with self.subTest(cases=cases):
+            for input_string, expected_result in cases:
+                self.assertEqual(
+                    undo_camel_case(input_string),
+                    expected_result,
+                )

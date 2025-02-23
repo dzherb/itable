@@ -91,7 +91,7 @@ async def update_portfolio(request, pk: int):
     return JsonResponse(await _serialize_portfolio_with_securities(portfolio))
 
 
-portfolio_dispatcher = Dispatcher(
+dispatcher = Dispatcher(
     get=get_portfolio,
     delete=delete_portfolio,
     patch=update_portfolio,
