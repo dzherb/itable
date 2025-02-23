@@ -34,9 +34,10 @@ if __name__ == '__main__':
     config = uvicorn.Config(
         app='asgi:application',
         loop='uvloop',
+        lifespan='on',
+        timeout_graceful_shutdown=3,
         host='127.0.0.1' if settings.DEBUG else '0.0.0.0',
         port=8000,
-        lifespan='on',
         proxy_headers=True,
     )
     server = uvicorn.Server(config)

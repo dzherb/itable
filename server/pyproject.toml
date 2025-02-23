@@ -17,6 +17,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "asgi-lifespan==2.*",
     "coverage>=7.6.12",
     "ruff>=0.9.6",
 ]
