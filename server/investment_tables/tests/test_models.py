@@ -5,6 +5,7 @@ from django.test import TestCase
 import exchange.models
 import investment_tables.models
 import portfolio.models
+from utils.db_helpers import AsyncAtomic
 
 
 class TableTemplateTestCase(TestCase):
@@ -65,11 +66,15 @@ class TableTemplateTestCase(TestCase):
             through_defaults={'weight': 0},
         )
 
-        with self.assertRaises(IntegrityError):
-            await self.table_template.securities.aadd(
-                self.stock2,
-                through_defaults={'weight': -1},
-            )
+        async with AsyncAtomic():
+            with self.assertRaises(IntegrityError):
+                await self.table_template.securities.aadd(
+                    self.stock2,
+                    through_defaults={'weight': -1},
+                )
+
+        self.assertEqual(await self.table_template.securities.acount(), 1)
+
 
 
 class TableSnapshotTestCase(TestCase):
@@ -117,3 +122,34 @@ class TableSnapshotTestCase(TestCase):
             ).security.ticker,
             'B',
         )
+
+    async def test_default_snapshot_item_coefficient(self):
+        snapshot = await investment_tables.models.TableSnapshot.from_template(
+            template=self.table_template,
+            portfolio=self.portfolio,
+        )
+
+        snapshot_item: investment_tables.models.TableSnapshotItem = await snapshot.items.aget(template_item__security__ticker='A')
+        self.assertEqual(snapshot_item.coefficient, 1)
+
+    async def test_snapshot_item_coefficient_constraint(self):
+        snapshot = await investment_tables.models.TableSnapshot.from_template(
+            template=self.table_template,
+            portfolio=self.portfolio,
+        )
+
+        snapshot_item: investment_tables.models.TableSnapshotItem = await snapshot.items.aget(template_item__security__ticker='A')
+        snapshot_item.coefficient = -1
+
+        async with AsyncAtomic():
+            with self.assertRaises(IntegrityError):
+                await snapshot_item.asave()
+
+        await snapshot_item.arefresh_from_db()
+        self.assertEqual(snapshot_item.coefficient, 1)
+
+        snapshot_item.coefficient = 0
+        await snapshot_item.asave()
+
+        await snapshot_item.arefresh_from_db()
+        self.assertEqual(snapshot_item.coefficient, 0)

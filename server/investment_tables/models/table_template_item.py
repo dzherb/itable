@@ -9,7 +9,6 @@ class TableTemplateItemQuerySet(models.QuerySet):
 
 
 class TableTemplateItem(CreatedUpdatedAbstractModel, models.Model):
-    weight = models.FloatField(help_text='in %')
     template = models.ForeignKey(
         to='TableTemplate',
         related_name='items',
@@ -22,6 +21,8 @@ class TableTemplateItem(CreatedUpdatedAbstractModel, models.Model):
         related_query_name='template_item',
         on_delete=models.CASCADE,
     )
+
+    weight = models.FloatField(help_text='in %')
     is_active = models.BooleanField(default=True)
 
     objects = TableTemplateItemQuerySet.as_manager()
