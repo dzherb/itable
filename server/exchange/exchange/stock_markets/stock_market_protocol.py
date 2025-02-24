@@ -14,5 +14,4 @@ class StockMarketProtocol(typing.Protocol):
     async def get_securities(
         self,
         tickers: Iterable[str],
-    ) -> list[SecurityDict]:
-        pass
+    ) -> list[SecurityDict]: ...
