@@ -31,3 +31,8 @@ class Dispatcher:
             )
 
         return dispatch
+
+
+def create_dispatcher(**method_handlers: Callable) -> Callable:
+    dispatcher = Dispatcher(**method_handlers)
+    return dispatcher.as_view()

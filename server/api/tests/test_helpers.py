@@ -385,6 +385,17 @@ class ModelToDataclassConverterTestCase(TestCase):
         self.assertEqual(portfolios[0].name, 'Test Portfolio 1')
         self.assertEqual(portfolios[0].owner.username, 'test_user')
 
+    async def test_model_to_dataclass_auto_source_fail(self):
+        @dataclasses.dataclass
+        class Schema:
+            id: int
+            name: str
+
+        converter = ModelToDataclassConverter(schema=Schema)
+
+        with self.assertRaises(AttributeError):
+            await converter.convert()
+
 
 class StringsHelpersTestCase(TestCase):
     def test_undo_camel_case(self):

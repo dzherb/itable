@@ -5,6 +5,7 @@ import typing
 from typing import override
 
 import dacite
+from dacite.types import is_optional
 from django.http import HttpRequest, HttpResponse, JsonResponse
 
 from api.request_checkers.checker_protocol import Checker
@@ -24,7 +25,8 @@ class _SchemaValidationRunner:
 
     def run_validations(self):
         for field in self._populated_schema.__dataclass_fields__.keys():
-            self._validate_field(field)
+            if self._should_validate(field):
+                self._validate_field(field)
 
         if hasattr(self._populated_schema, 'validate'):
             self._populated_schema.validate()
@@ -36,6 +38,14 @@ class _SchemaValidationRunner:
 
         value: T = getattr(self._populated_schema, field)
         return value
+
+    def _should_validate(self, field: str) -> bool:
+        field_type = self._populated_schema.__annotations__[field]
+        field_value = getattr(self._populated_schema, field)
+        if is_optional(field_type) and field_value is None:
+            return False
+
+        return True
 
 
 class SchemaChecker(Checker):

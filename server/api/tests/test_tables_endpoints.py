@@ -169,6 +169,16 @@ class TestSnapshotCreationTestCase(SnapshotsFixtureMixin, TestCase):
         self.assertEqual(last_snapshot.name, self.template.name)
         self.assertEqual(snapshot['name'], self.template.name)
 
+    async def test_user_cannot_create_snapshot_with_empty_name(self):
+        await self.client.aforce_login(self.user)
+        self.create_data['name'] = ''
+        response = await self.client.post(
+            reverse('api:table_snapshots'),
+            self.create_data,
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+
     async def test_anonymous_user_cannot_create_snapshot(self):
         response = await self.client.post(
             reverse('api:table_snapshots'),

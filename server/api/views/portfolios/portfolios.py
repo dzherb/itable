@@ -4,11 +4,13 @@ import logging
 
 from django.http import JsonResponse
 
-from api.helpers import aget_object_or_404_json, Dispatcher
+from api.helpers import aget_object_or_404_json
+from api.helpers.dispatcher import create_dispatcher
 from api.helpers.model_converters import (
     ModelToDataclassConverter,
     ModelToDictConverter,
 )
+from api.helpers.schema_mixins import ValidateNameSchemaMixin
 from api.permissions import IsPortfolioOwner
 from api.views.api_view import api_view
 from portfolio.models import Portfolio
@@ -31,7 +33,21 @@ class PortfolioSchema:
     securities: list[PortfolioSecuritySchema]
 
 
-async def _serialize_portfolio_with_securities(portfolio: Portfolio):
+@dataclasses.dataclass
+class PortfolioCreateAndUpdateSchema(ValidateNameSchemaMixin):
+    name: str
+
+
+async def _serialize_portfolio(portfolio: Portfolio) -> dict:
+    converter = ModelToDictConverter(
+        source=portfolio,
+        schema=PortfolioSchema,
+        skip_fields=('securities',),
+    )
+    return await converter.convert()
+
+
+async def _serialize_portfolio_with_securities(portfolio: Portfolio) -> dict:
     converter = ModelToDictConverter(
         source=portfolio,
         schema=PortfolioSchema,
@@ -56,6 +72,20 @@ async def get_portfolio(request, pk: int):
     return JsonResponse(await _serialize_portfolio_with_securities(portfolio))
 
 
+@api_view(
+    methods=['POST'],
+    login_required=True,
+    request_schema=PortfolioCreateAndUpdateSchema,
+)
+async def create_portfolio(request):
+    portfolio_schema: PortfolioCreateAndUpdateSchema = request.populated_schema
+    portfolio: Portfolio = await Portfolio.objects.acreate(
+        name=portfolio_schema.name,
+        owner=request.user,
+    )
+    return JsonResponse(await _serialize_portfolio(portfolio))
+
+
 @api_view(login_required=True, permissions=[IsPortfolioOwner()])
 async def delete_portfolio(request, pk: int):
     portfolio: Portfolio = await aget_object_or_404_json(
@@ -71,15 +101,10 @@ async def delete_portfolio(request, pk: int):
     return JsonResponse({})
 
 
-@dataclasses.dataclass
-class PortfolioUpdateSchema:
-    name: str
-
-
 @api_view(
     login_required=True,
     permissions=[IsPortfolioOwner()],
-    request_schema=PortfolioUpdateSchema,
+    request_schema=PortfolioCreateAndUpdateSchema,
 )
 async def update_portfolio(request, pk: int):
     portfolio: Portfolio = await aget_object_or_404_json(
@@ -91,7 +116,7 @@ async def update_portfolio(request, pk: int):
     return JsonResponse(await _serialize_portfolio_with_securities(portfolio))
 
 
-dispatcher = Dispatcher(
+detail_dispatcher = create_dispatcher(
     get=get_portfolio,
     delete=delete_portfolio,
     patch=update_portfolio,
@@ -120,3 +145,9 @@ async def portfolio_list(request):
     )
     portfolios = await converter.convert()
     return JsonResponse({'portfolios': portfolios})
+
+
+dispatcher = create_dispatcher(
+    get=portfolio_list,
+    post=create_portfolio,
+)

@@ -9,6 +9,9 @@ from portfolio.models import Portfolio
 
 
 class IsPortfolioOwner(Permission):
+    def __init__(self, argument_name='pk'):
+        self.argument_name = argument_name
+
     @override
     async def has_permission(
         self,
@@ -17,8 +20,8 @@ class IsPortfolioOwner(Permission):
         **kwargs,
     ) -> bool:
         portfolio = await aget_object_or_404_json(
-            Portfolio.objects.only('owner_id'),
-            pk=kwargs['pk'],
+            Portfolio.objects.active().only('owner_id'),
+            pk=kwargs[self.argument_name],
         )
         if portfolio.owner_id != request.user.id:
             # We don't want other users to know

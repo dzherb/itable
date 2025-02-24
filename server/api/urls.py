@@ -14,11 +14,28 @@ urlpatterns = [
             ],
         ),
     ),
-    path('portfolios/', views.portfolios.portfolio_list, name='portfolios'),
     path(
-        'portfolios/<int:pk>/',
-        views.portfolios.dispatcher.as_view(),
-        name='portfolio',
+        'portfolios/',
+        include(
+            [
+                path('', views.portfolios.dispatcher, name='portfolios'),
+                path(
+                    '<int:pk>/',
+                    views.portfolios.detail_dispatcher,
+                    name='portfolio',
+                ),
+                path(
+                    '<int:portfolio_id>/securities/',
+                    views.portfolios.securities.add_portfolio_security,
+                    name='portfolio_securities',
+                ),
+                path(
+                    '<int:portfolio_id>/securities/<str:security_ticker>/',
+                    views.portfolios.securities.dispatcher,
+                    name='portfolio_security',
+                ),
+            ],
+        ),
     ),
     path('securities/', views.securities.security_list, name='securities'),
     path(
@@ -27,7 +44,7 @@ urlpatterns = [
             [
                 path(
                     'snapshots/',
-                    views.tables.snapshots.dispatcher.as_view(),
+                    views.tables.snapshots.dispatcher,
                     name='table_snapshots',
                 ),
             ],

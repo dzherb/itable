@@ -245,7 +245,7 @@ class UserSchemaWithValidators:
             raise ValueError('password contains username')
 
     def validate_age(self):
-        if self.age is not None and self.age < 1:
+        if self.age < 1:
             raise ValueError('age is too small')
 
     def validate_password(self):
@@ -281,6 +281,10 @@ class APIViewSchemaValidationTestCase(TestCase):
                 {'username': 'test', 'password': '12345678', 'age': 18},
                 'password should include letters',
             ),
+            (
+                {'username': 'test', 'password': '1234test5678', 'age': 18},
+                'password contains username',
+            ),
         ]
 
         for case in cases:
@@ -298,19 +302,35 @@ class APIViewSchemaValidationTestCase(TestCase):
                 self.assertEqual(content['error'], expected_error)
 
     async def test_api_view_schema_field_validation_success(self):
-        request_data = {
-            'username': 'test',
-            'password': 'strong1Pass',
-            'age': 18,
-        }
-        request = self.factory.post(
-            path='/handler',
-            data=request_data,
-            content_type='application/json',
-        )
-        response = await self.handler(request)
+        cases = [
+            {
+                'username': 'test',
+                'password': 'strong1Pass',
+                'age': 18,
+            },
+            # If a field is Optional, and its value is absent (or None)
+            # then we expect to skip its validation
+            {
+                'username': 'test',
+                'password': 'strong1Pass',
+            },
+            {
+                'username': 'test',
+                'password': 'strong1Pass',
+                'age': None,
+            },
+        ]
 
-        self.assertEqual(response.status_code, HTTPStatus.OK)
+        for request_data in cases:
+            with self.subTest(request_data=request_data):
+                request = self.factory.post(
+                    path='/handler',
+                    data=request_data,
+                    content_type='application/json',
+                )
+                response = await self.handler(request)
+
+                self.assertEqual(response.status_code, HTTPStatus.OK)
 
 
 class APIViewAuthenticationTestCase(TestCase):

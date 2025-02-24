@@ -3,11 +3,13 @@ import datetime
 
 from django.http import JsonResponse
 
-from api.helpers import aget_object_or_404_json, Dispatcher
+from api.helpers import aget_object_or_404_json
+from api.helpers.dispatcher import create_dispatcher
 from api.helpers.model_converters import (
     ModelToDataclassConverter,
     ModelToDictConverter,
 )
+from api.helpers.schema_mixins import ValidateNameSchemaMixin
 from api.views.api_view import api_view
 from investment_tables.models import TableSnapshot, TableTemplate
 from portfolio.models import Portfolio
@@ -55,7 +57,7 @@ async def table_snapshot_list(request):
 
 
 @dataclasses.dataclass
-class TableSnapshotCreateSchema:
+class TableSnapshotCreateSchema(ValidateNameSchemaMixin):
     name: str | None
     portfolio_id: int
     template_id: int
@@ -94,4 +96,7 @@ async def create_table_snapshot(request):
     return JsonResponse({'snapshot': await converter.convert()})
 
 
-dispatcher = Dispatcher(get=table_snapshot_list, post=create_table_snapshot)
+dispatcher = create_dispatcher(
+    get=table_snapshot_list,
+    post=create_table_snapshot,
+)
