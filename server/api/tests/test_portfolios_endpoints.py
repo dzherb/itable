@@ -314,18 +314,7 @@ class PortfolioSecurityTestCase(TestCase):
 
     async def test_user_can_update_portfolio_security_quantity(self):
         await self.client.aforce_login(self.first_user)
-        await self.client.post(
-            self.endpoint_path,
-            data={'ticker': 'SBER', 'quantity': 2},
-            content_type='application/json',
-        )
-        url = reverse(
-            'api:portfolio_security',
-            kwargs={
-                'portfolio_id': self.first_user_portfolio.id,
-                'security_ticker': 'SBER',
-            },
-        )
+        url = await self._add_security_to_portfolio_and_get_its_url()
         response = await self.client.patch(
             url,
             {'ticker': 'SBER', 'quantity': 5},
@@ -339,11 +328,7 @@ class PortfolioSecurityTestCase(TestCase):
 
     async def test_user_cant_update_portfolio_security_quantity(self):
         await self.client.aforce_login(self.first_user)
-        await self.client.post(
-            self.endpoint_path,
-            data={'ticker': 'SBER', 'quantity': 2},
-            content_type='application/json',
-        )
+        await self._add_security_to_portfolio_and_get_its_url()
 
         cases = (
             ('SBER', {'quantity': 0}, HTTPStatus.BAD_REQUEST),
@@ -369,3 +354,88 @@ class PortfolioSecurityTestCase(TestCase):
                     content_type='application/json',
                 )
                 self.assertEqual(response.status_code, expected_status)
+
+    async def test_user_can_delete_portfolio_security(self):
+        await self.client.aforce_login(self.first_user)
+        url = await self._add_security_to_portfolio_and_get_its_url()
+        self.assertEqual(
+            await self.first_user_portfolio.securities.acount(),
+            1,
+        )
+
+        response = await self.client.delete(url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(
+            await self.first_user_portfolio.securities.acount(),
+            0,
+        )
+
+    async def test_user_cant_delete_same_portfolio_security_twice(self):
+        await self.client.aforce_login(self.first_user)
+        url = await self._add_security_to_portfolio_and_get_its_url()
+
+        response = await self.client.delete(url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(
+            await self.first_user_portfolio.securities.acount(),
+            0,
+        )
+
+        response = await self.client.delete(url)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        error = json.loads(response.content)['error']
+        self.assertEqual(error, 'portfolio security not found')
+        self.assertEqual(
+            await self.first_user_portfolio.securities.acount(),
+            0,
+        )
+
+    async def test_user_cant_delete_deleted_portfolio_security(self):
+        await self.client.aforce_login(self.first_user)
+        url = await self._add_security_to_portfolio_and_get_its_url()
+        self.first_user_portfolio.is_active = False
+        await self.first_user_portfolio.asave(update_fields=['is_active'])
+        response = await self.client.delete(url)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        error = json.loads(response.content)['error']
+        self.assertEqual(error, 'portfolio not found')
+
+    async def test_user_cant_delete_not_theirs_portfolio_security(self):
+        await self.client.aforce_login(self.first_user)
+        url = await self._add_security_to_portfolio_and_get_its_url()
+
+        await self.client.aforce_login(self.second_user)
+        response = await self.client.delete(url)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        self.assertEqual(
+            await self.first_user_portfolio.securities.acount(),
+            1,
+        )
+        error = json.loads(response.content)['error']
+        self.assertEqual(error, 'portfolio not found')
+
+    async def test_anonymous_user_cant_delete_portfolio_security(self):
+        await self.client.aforce_login(self.first_user)
+        url = await self._add_security_to_portfolio_and_get_its_url()
+        await self.client.alogout()
+        response = await self.client.delete(url)
+        self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
+        self.assertEqual(
+            await self.first_user_portfolio.securities.acount(),
+            1,
+        )
+
+    async def _add_security_to_portfolio_and_get_its_url(self) -> str:
+        await self.client.post(
+            self.endpoint_path,
+            data={'ticker': 'SBER', 'quantity': 13},
+            content_type='application/json',
+        )
+
+        return reverse(
+            'api:portfolio_security',
+            kwargs={
+                'portfolio_id': self.first_user_portfolio.id,
+                'security_ticker': 'SBER',
+            },
+        )

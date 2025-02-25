@@ -16,6 +16,8 @@ from portfolio.models import PortfolioItem
 
 logger = logging.getLogger('api')
 
+PORTFOLIO_ITEM_404_NAME = 'portfolio security'
+
 
 class PortfolioItemValidationMixin:
     def validate_quantity(self):
@@ -107,7 +109,7 @@ async def update_portfolio_security(
         ),
         portfolio__id=portfolio_id,
         security__ticker=security_ticker,
-        object_error_name='portfolio security',
+        object_error_name=PORTFOLIO_ITEM_404_NAME,
     )
     schema: PortfolioSecurityUpdateSchema = request.populated_schema
     portfolio_item.quantity = schema.quantity
@@ -116,6 +118,35 @@ async def update_portfolio_security(
     return JsonResponse(await _serialize_portfolio_item(portfolio_item))
 
 
+@api_view(
+    login_required=True,
+    permissions=[IsPortfolioOwner(argument_name='portfolio_id')],
+)
+async def remove_portfolio_security(
+    request,
+    portfolio_id: int,
+    security_ticker: int,
+):
+    portfolio_item: PortfolioItem = await aget_object_or_404_json(
+        PortfolioItem.objects.only(),
+        portfolio_id=portfolio_id,
+        security__ticker=security_ticker,
+        object_error_name=PORTFOLIO_ITEM_404_NAME,
+    )
+    await portfolio_item.adelete()
+    logger.info(
+        'User deleted portfolio item',
+        extra={
+            'user_id': request.user.id,
+            'portfolio_id': portfolio_id,
+            'ticker': security_ticker,
+        },
+    )
+
+    return JsonResponse({})
+
+
 dispatcher = create_dispatcher(
     patch=update_portfolio_security,
+    delete=remove_portfolio_security,
 )
