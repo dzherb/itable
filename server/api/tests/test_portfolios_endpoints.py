@@ -312,6 +312,19 @@ class PortfolioSecurityTestCase(TestCase):
         error = json.loads(response.content)['error']
         self.assertEqual(error, 'portfolio not found')
 
+    async def test_user_cant_add_nonexistent_security(self):
+        await self.client.aforce_login(self.first_user)
+        response = await self.client.post(
+            self.endpoint_path,
+            data={'ticker': 'NONEXISTNT', 'quantity': 23},
+            content_type='application/json',
+        )
+        error = json.loads(response.content)['error']
+
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        self.assertEqual(error, 'security not found')
+        self.assertFalse(await self.first_user_portfolio.securities.aexists())
+
     async def test_user_can_update_portfolio_security_quantity(self):
         await self.client.aforce_login(self.first_user)
         url = await self._add_security_to_portfolio_and_get_its_url()

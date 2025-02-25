@@ -13,6 +13,7 @@ from api.helpers import Dispatcher
 from api.helpers.model_converters import (
     ModelToDataclassConverter,
 )
+from api.helpers.schema_mixins import ValidateIdFieldsMixin
 from api.helpers.strings import undo_camel_case
 from api.views.api_view import api_view
 from exchange.models import Security
@@ -413,3 +414,25 @@ class StringsHelpersTestCase(TestCase):
                     undo_camel_case(input_string),
                     expected_result,
                 )
+
+
+class TestSchemaMixins(TestCase):
+    def test_validate_id_fields_mixin(self):
+        @dataclasses.dataclass
+        class Schema(ValidateIdFieldsMixin):
+            id: int
+            parent_id: int
+            name: str
+
+        self.assertTrue(hasattr(Schema, 'validate_id'))
+        self.assertTrue(hasattr(Schema, 'validate_parent_id'))
+        self.assertFalse(hasattr(Schema, 'validate_name'))
+
+        instance = Schema(1, -2, 'test')
+        instance.validate_id()  # expect no error to be raised
+
+        with self.assertRaisesMessage(
+            ValueError,
+            'parent_id must be greater than 0',
+        ):
+            instance.validate_parent_id()

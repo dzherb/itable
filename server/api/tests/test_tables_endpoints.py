@@ -14,6 +14,7 @@ from investment_tables.models import (
     TableTemplate,
 )
 from portfolio.models import Portfolio
+from utils.db_helpers import AsyncAtomic
 
 User = get_user_model()
 
@@ -169,16 +170,6 @@ class TestSnapshotCreationTestCase(SnapshotsFixtureMixin, TestCase):
         self.assertEqual(last_snapshot.name, self.template.name)
         self.assertEqual(snapshot['name'], self.template.name)
 
-    async def test_user_cannot_create_snapshot_with_empty_name(self):
-        await self.client.aforce_login(self.user)
-        self.create_data['name'] = ''
-        response = await self.client.post(
-            reverse('api:table_snapshots'),
-            self.create_data,
-            content_type='application/json',
-        )
-        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-
     async def test_anonymous_user_cannot_create_snapshot(self):
         response = await self.client.post(
             reverse('api:table_snapshots'),
@@ -219,6 +210,11 @@ class TestSnapshotCreationTestCase(SnapshotsFixtureMixin, TestCase):
                 'template_id': self.template.id,
             },
             {
+                'name': '',
+                'portfolio_id': self.portfolio.id,
+                'template_id': self.template.id,
+            },
+            {
                 'name': 'new snapshot',
                 'portfolio_id': -10,
                 'template_id': self.template.id,
@@ -228,15 +224,24 @@ class TestSnapshotCreationTestCase(SnapshotsFixtureMixin, TestCase):
                 'portfolio_id': 'wrong_type',
                 'template_id': self.template.id,
             },
+            {
+                'name': 'new snapshot',
+                'portfolio_id': self.portfolio.id,
+                'template_id': -33,
+            },
             {'name': 'new snapshot', 'portfolio_id': self.portfolio.id},
         )
 
         for case in cases:
             with self.subTest(case=case):
-                response = await self.client.post(
-                    reverse('api:table_snapshots'),
-                    data=case,
-                    content_type='application/json',
-                )
-                self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-                self.assertEqual(await TableSnapshot.objects.acount(), 2)
+                async with AsyncAtomic():
+                    response = await self.client.post(
+                        reverse('api:table_snapshots'),
+                        data=case,
+                        content_type='application/json',
+                    )
+                    self.assertEqual(
+                        response.status_code,
+                        HTTPStatus.BAD_REQUEST,
+                    )
+                    self.assertEqual(await TableSnapshot.objects.acount(), 2)

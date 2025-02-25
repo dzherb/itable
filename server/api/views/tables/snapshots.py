@@ -9,7 +9,10 @@ from api.helpers.model_converters import (
     ModelToDataclassConverter,
     ModelToDictConverter,
 )
-from api.helpers.schema_mixins import ValidateNameSchemaMixin
+from api.helpers.schema_mixins import (
+    ValidateIdFieldsMixin,
+    ValidateNameSchemaMixin,
+)
 from api.views.api_view import api_view
 from investment_tables.models import TableSnapshot, TableTemplate
 from portfolio.models import Portfolio
@@ -57,34 +60,29 @@ async def table_snapshot_list(request):
 
 
 @dataclasses.dataclass
-class TableSnapshotCreateSchema(ValidateNameSchemaMixin):
+class TableSnapshotCreateSchema(
+    ValidateNameSchemaMixin,
+    ValidateIdFieldsMixin,
+):
     name: str | None
     portfolio_id: int
     template_id: int
 
-    def validate_portfolio_id(self):
-        if self.portfolio_id < 0:
-            raise ValueError('invalid portfolio id')
-
-    def validate_template_id(self):
-        if self.portfolio_id < 0:
-            raise ValueError('invalid template id')
-
 
 @api_view(login_required=True, request_schema=TableSnapshotCreateSchema)
 async def create_table_snapshot(request):
-    request_snapshot: TableSnapshotCreateSchema = request.populated_schema
+    table_snapshot_schema: TableSnapshotCreateSchema = request.populated_schema
     portfolio = await aget_object_or_404_json(
         Portfolio.objects.filter(owner=request.user),
-        pk=request_snapshot.portfolio_id,
+        pk=table_snapshot_schema.portfolio_id,
     )
     template = await aget_object_or_404_json(
         TableTemplate,
-        pk=request_snapshot.template_id,
+        pk=table_snapshot_schema.template_id,
     )
 
     table_snapshot = await TableSnapshot.objects.acreate(
-        name=request_snapshot.name,
+        name=table_snapshot_schema.name,
         portfolio=portfolio,
         template=template,
     )
