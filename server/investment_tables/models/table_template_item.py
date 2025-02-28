@@ -32,7 +32,7 @@ class TableTemplateItem(CreatedUpdatedAbstractModel, models.Model):
         constraints = [
             models.CheckConstraint(
                 name='weight_limit',
-                check=models.Q(weight__gte=0, weight__lte=100),
+                condition=models.Q(weight__gte=0, weight__lte=100),
             ),
         ]
 
