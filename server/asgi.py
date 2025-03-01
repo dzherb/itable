@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
 import logging
 import os
+import typing
 
+from asgiref.typing import ASGI3Application
 from django.conf import settings
 from django.core.asgi import get_asgi_application
 import uvicorn
@@ -12,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
 
-application = get_asgi_application()
+application = typing.cast(ASGI3Application, get_asgi_application())
 
 
 @asynccontextmanager

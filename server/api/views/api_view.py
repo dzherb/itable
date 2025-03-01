@@ -76,8 +76,8 @@ class _ApiViewWrapper:
 
         return None
 
-    def _get_checkers(self):
-        checkers = []
+    def _get_checkers(self) -> Iterable[Checker]:
+        checkers: list[Checker] = []
         if self._methods is not None:
             checkers.append(MethodsChecker(self._methods))
 

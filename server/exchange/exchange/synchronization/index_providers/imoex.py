@@ -1,4 +1,5 @@
 import logging
+import typing
 from typing import final, override
 
 import aiohttp
@@ -54,7 +55,7 @@ class IMOEXProvider(BaseMOEX, IndexProviderProtocol):
         for security in response['analytics']:
             self._result.append(
                 {
-                    'ticker': security['ticker'],
-                    'weight': security['weight'],
+                    'ticker': typing.cast(str, security['ticker']),
+                    'weight': typing.cast(float, security['weight']),
                 },
             )

@@ -1,4 +1,6 @@
 class ValidateNameSchemaMixin:
+    name: str | None
+
     def validate_name(self):
         if not self.name:
             raise ValueError('name cannot be empty')

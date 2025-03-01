@@ -10,6 +10,14 @@ class SecurityDict(typing.TypedDict):
     last_dividend_value: typing.NotRequired[float]
 
 
+class PartialSecurityDict(typing.TypedDict):
+    short_name: typing.NotRequired[str]
+    ticker: typing.NotRequired[str]
+    price: typing.NotRequired[float]
+    lot_size: typing.NotRequired[int]
+    last_dividend_value: typing.NotRequired[float]
+
+
 class StockMarketProtocol(typing.Protocol):
     async def get_securities(
         self,

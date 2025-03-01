@@ -1,6 +1,7 @@
 import asyncio
 from collections.abc import Iterable
 import logging
+from types import TracebackType
 import typing
 from typing import override
 
@@ -14,6 +15,7 @@ from exchange.exchange.stock_markets.moex.iss_client import (
     ISSClientFactoryImpl,
 )
 from exchange.exchange.stock_markets.stock_market_protocol import (
+    PartialSecurityDict,
     SecurityDict,
     StockMarketProtocol,
 )
@@ -58,7 +60,7 @@ class BaseMOEX:
         self._client_factory: ISSClientFactory = (
             client_factory or ISSClientFactoryImpl()
         )
-        self._session: aiohttp.ClientSession | None = None
+        self._session: aiohttp.ClientSession
         self._timeout = timeout if timeout is not None else DEFAULT_TIMEOUT
 
     async def __aenter__(self):
@@ -69,7 +71,12 @@ class BaseMOEX:
         await self._session.__aenter__()
         return
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ):
         await self._session.__aexit__(exc_type, exc_val, exc_tb)
 
         if exc_val:
@@ -92,7 +99,7 @@ class MOEX(BaseMOEX, StockMarketProtocol):
     ):
         super().__init__(client_factory=client_factory, timeout=timeout)
 
-        self._tickers: Iterable[str] | None = None
+        self._tickers: Iterable[str]
         self._result: dict[str, SecurityDict] = {}
 
     @override
@@ -128,15 +135,15 @@ class MOEX(BaseMOEX, StockMarketProtocol):
         data = await client.get()
 
         for security in data['securities']:
-            ticker = security['SECID']
+            ticker = typing.cast(str, security['SECID'])
 
             self._add_to_results(
                 ticker,
                 {
-                    'ticker': security['SECID'],
-                    'short_name': security['SHORTNAME'],
-                    'price': security['PREVPRICE'],
-                    'lot_size': security['LOTSIZE'],
+                    'ticker': ticker,
+                    'short_name': typing.cast(str, security['SHORTNAME']),
+                    'price': typing.cast(float, security['PREVPRICE']),
+                    'lot_size': typing.cast(int, security['LOTSIZE']),
                 },
             )
 
@@ -181,7 +188,11 @@ class MOEX(BaseMOEX, StockMarketProtocol):
             arguments,
         )
 
-    def _add_to_results(self, ticker: str, security: SecurityDict):
+    def _add_to_results(
+        self,
+        ticker: str,
+        partial_security: PartialSecurityDict,
+    ):
         default_security = SecurityDict(
             short_name='',
             ticker=ticker,
@@ -189,5 +200,5 @@ class MOEX(BaseMOEX, StockMarketProtocol):
             lot_size=1,
         )
         self._result[ticker] = (
-            self._result.get(ticker, default_security) | security
+            self._result.get(ticker, default_security) | partial_security
         )
