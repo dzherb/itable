@@ -22,8 +22,8 @@ class api_view:  # noqa: N801
         cls,
         view_function: Callable | None = None,
         **kwargs,
-    ) -> Callable:
-        self = super().__new__(cls)
+    ) -> 'api_view' | Callable:
+        self: 'api_view' = super().__new__(cls)
         self._init(**kwargs)
 
         if (

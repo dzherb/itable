@@ -14,6 +14,10 @@ if typing.TYPE_CHECKING:
     from _typeshed import DataclassInstance
 
 
+class PopulatedSchemaRequest[T: 'DataclassInstance'](HttpRequest):
+    populated_schema: T
+
+
 class _SchemaValidationRunner:
     """
     Runs schema "validate" methods if it has them.
@@ -31,12 +35,12 @@ class _SchemaValidationRunner:
         if hasattr(self._populated_schema, 'validate'):
             self._populated_schema.validate()
 
-    def _validate_field[T](self, field: str) -> T:
+    def _validate_field(self, field: str) -> typing.Any:
         validation_method_name = 'validate_' + field
         if hasattr(self._populated_schema, validation_method_name):
             return getattr(self._populated_schema, validation_method_name)()
 
-        value: T = getattr(self._populated_schema, field)
+        value: typing.Any = getattr(self._populated_schema, field)
         return value
 
     def _should_validate(self, field: str) -> bool:
@@ -67,6 +71,8 @@ class SchemaChecker(Checker):
                 data=request_data,
             )
             _SchemaValidationRunner(populated_schema).run_validations()
+
+            request = typing.cast(PopulatedSchemaRequest, request)
             request.populated_schema = populated_schema
             return True
         except dacite.WrongTypeError as e:
@@ -79,7 +85,7 @@ class SchemaChecker(Checker):
             self._error = str(e)
             return False
 
-    def _get_request_data(self, request):
+    def _get_request_data(self, request: HttpRequest) -> dict:
         if request.method == 'GET':
             return dict(request.GET)
 

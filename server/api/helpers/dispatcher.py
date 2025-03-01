@@ -24,7 +24,7 @@ class Dispatcher:
             if not await self._methods_checker.check(request):
                 return self._methods_checker.on_failure_response()
 
-            return await getattr(self, request.method.lower())(
+            return await getattr(self, str(request.method).lower())(
                 request,
                 *args,
                 **kwargs,

@@ -1,6 +1,7 @@
 import atexit
 import json
 import logging.config
+import logging.handlers
 from pathlib import Path
 
 
@@ -18,6 +19,10 @@ def setup_logging(base_dir: Path):
     logging.config.dictConfig(config)
 
     queue_handler = logging.getHandlerByName('queue_handler')
-    if queue_handler is not None:
+    if (
+        queue_handler is not None
+        and isinstance(queue_handler, logging.handlers.QueueHandler)
+        and queue_handler.listener is not None
+    ):
         queue_handler.listener.start()
         atexit.register(queue_handler.listener.stop)

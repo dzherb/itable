@@ -30,7 +30,7 @@ class Portfolio(CreatedUpdatedAbstractModel, models.Model):
     )
     securities = models.ManyToManyField(
         to='exchange.Security',
-        through='PortfolioItem',
+        through='portfolio.PortfolioItem',
         related_name='portfolios',
         related_query_name='portfolio',
     )

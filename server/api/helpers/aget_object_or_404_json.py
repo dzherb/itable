@@ -25,15 +25,15 @@ async def aget_object_or_404_json[T: models.Model](
     try:
         return await aget_object_or_404(source, *args, **kwargs)
     except Http404 as e:
-        object_type = None
+        object_type: type[T] | str | None = None
         if object_error_name:
             object_type = object_error_name
-        elif source.__class__ is models.base.ModelBase:
-            object_type = source
         elif isinstance(source, models.Manager) or isinstance(
             source,
             models.QuerySet,
         ):
             object_type = source.model
+        elif issubclass(source, models.Model):
+            object_type = source
 
         raise exceptions.NotFoundError(object_type=object_type) from e

@@ -10,7 +10,7 @@ class TableTemplate(CreatedUpdatedAbstractModel, models.Model):
     slug = models.SlugField(max_length=20, unique=True)
     securities = models.ManyToManyField(
         to='exchange.Security',
-        through='TableTemplateItem',
+        through='investment_tables.TableTemplateItem',
         related_name='templates',
         related_query_name='template',
     )

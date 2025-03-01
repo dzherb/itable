@@ -29,14 +29,14 @@ class TableSnapshot(CreatedUpdatedAbstractModel, models.Model):
         related_query_name='table_snapshot',
     )
     template = models.ForeignKey(
-        to='TableTemplate',
+        to='investment_tables.TableTemplate',
         on_delete=models.CASCADE,
         related_name='snapshots',
         related_query_name='snapshot',
     )
     template_items = models.ManyToManyField(
-        to='TableTemplateItem',
-        through='TableSnapshotItem',
+        to='investment_tables.TableTemplateItem',
+        through='investment_tables.TableSnapshotItem',
         related_name='snapshots',
         related_query_name='snapshot',
     )
@@ -48,12 +48,6 @@ class TableSnapshot(CreatedUpdatedAbstractModel, models.Model):
     def __str__(self):
         return self.name
 
-    def save(self, *args, **kwargs):
-        if not self.name:
-            self.name = self.template.name
-
-        super().save(*args, **kwargs)
-
     @classmethod
     @aatomic
     async def from_template(
@@ -61,7 +55,10 @@ class TableSnapshot(CreatedUpdatedAbstractModel, models.Model):
         template: 'TableTemplate',
         portfolio: 'Portfolio',
         name: str | None = None,
-    ) -> typing.Self:
+    ) -> 'TableSnapshot':
+        if name is None:
+            name = template.name
+
         snapshot: TableSnapshot = await cls.objects.acreate(
             portfolio=portfolio,
             template=template,

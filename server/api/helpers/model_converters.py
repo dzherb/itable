@@ -1,21 +1,26 @@
 import abc
 import asyncio
+from collections.abc import Iterable, Mapping, Sequence
 import dataclasses
+from dataclasses import is_dataclass
 import typing
 from typing import override
 
 from dacite.types import is_instance
 from django.db import models
 
+if typing.TYPE_CHECKING:
+    from _typeshed import DataclassInstance
 
-class Converter(abc.ABC):
+
+class Converter[T: models.Model, D: 'DataclassInstance', E](abc.ABC):
     def __init__(
         self,
-        schema,
-        source: models.Model | models.QuerySet | None = None,
+        schema: type[D],
+        source: T | models.QuerySet[T] | None = None,
         *,
-        fields_map: dict[str, typing.Union[str, 'Converter']] | None = None,
-        skip_fields: typing.Sequence[str] | None = None,
+        fields_map: Mapping[str, typing.Union[str, 'Converter']] | None = None,
+        skip_fields: Iterable[str] | None = None,
         many: bool = False,
     ):
         self._source = source
@@ -34,16 +39,18 @@ class Converter(abc.ABC):
         self._many = many
 
     @abc.abstractmethod
-    async def convert(self) -> typing.Any: ...
+    async def convert(self) -> E | Sequence[E]: ...
 
-    def _set_source_if_empty(self, source):
+    def _set_source_if_empty(self, source: T | models.QuerySet[T]):
         if self._source is None:
             self._source = source
 
 
-class ModelToDataclassConverter(Converter):
+class ModelToDataclassConverter[T: models.Model, E: 'DataclassInstance'](
+    Converter[T, E, E],
+):
     @override
-    async def convert(self) -> typing.Any:
+    async def convert(self) -> E | Sequence[E]:
         if self._source is None:
             raise AttributeError(
                 'Failed to automatically resole the source field, '
@@ -64,9 +71,9 @@ class ModelToDataclassConverter(Converter):
 
         return await self._convert_one(self._source)
 
-    async def _convert_one(self, source):
+    async def _convert_one(self, source: T | models.QuerySet[T]):
         fields = self._dataclass.__dataclass_fields__
-        init_kwargs = {}
+        init_kwargs: dict[str, typing.Any] = {}
         for field_name in fields:
             if field_name in self._skip_fields:
                 init_kwargs[field_name] = None
@@ -78,7 +85,7 @@ class ModelToDataclassConverter(Converter):
                 init_kwargs[field_name] = await lookup.convert()
                 continue
 
-            instance_field_name = lookup
+            instance_field_name: str = lookup
 
             # Handle complex field lookups like portfolio__owner__first_name
             instance_field_parts = instance_field_name.split('__')
@@ -105,12 +112,39 @@ class ModelToDataclassConverter(Converter):
             raise TypeError(f'Type mismatch for field "{field_name}"')
 
 
-class ModelToDictConverter(ModelToDataclassConverter):
+class ModelToDictConverter[T: models.Model, D: 'DataclassInstance', E: dict](
+    Converter[T, D, E],
+):
+    def __init__(
+        self,
+        schema: type[D],
+        source: T | models.QuerySet[T] | None = None,
+        *,
+        fields_map: Mapping[str, typing.Union[str, 'Converter']] | None = None,
+        skip_fields: typing.Sequence[str] | None = None,
+        many: bool = False,
+    ):
+        super().__init__(
+            schema,
+            source,
+            fields_map=fields_map,
+            skip_fields=skip_fields,
+            many=many,
+        )
+        self._intermediate_converter = ModelToDataclassConverter[T, D](
+            schema,
+            source,
+            fields_map=fields_map,
+            skip_fields=skip_fields,
+            many=many,
+        )
+
     @override
-    async def convert(self) -> typing.Any:
-        result = await super().convert()
+    async def convert(self) -> E | Sequence[E]:
+        result = await self._intermediate_converter.convert()
 
-        if self._many:
-            return list(map(dataclasses.asdict, result))
+        if self._many and isinstance(result, Sequence):
+            return [typing.cast(E, dataclasses.asdict(val)) for val in result]
 
-        return dataclasses.asdict(result)
+        assert is_dataclass(result)
+        return typing.cast(E, dataclasses.asdict(result))

@@ -14,7 +14,7 @@ class UnauthorizedError(APIError):
 
 
 class NotFoundError(APIError):
-    def __init__(self, object_type: type[models.Model] | str = None):
+    def __init__(self, object_type: type[models.Model] | str | None = None):
         base_message = 'not found'
         if object_type is None:
             self.message = base_message

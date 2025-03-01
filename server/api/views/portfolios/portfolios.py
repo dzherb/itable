@@ -2,7 +2,7 @@ import dataclasses
 import datetime
 import logging
 
-from django.http import JsonResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 
 from api.helpers import aget_object_or_404_json
 from api.helpers.dispatcher import create_dispatcher
@@ -12,6 +12,7 @@ from api.helpers.model_converters import (
 )
 from api.helpers.schema_mixins import ValidateNameSchemaMixin
 from api.permissions import IsPortfolioOwner
+from api.request_checkers.schema_checker import PopulatedSchemaRequest
 from api.views.api_view import api_view
 from portfolio.models import Portfolio
 
@@ -77,17 +78,18 @@ async def get_portfolio(request, pk: int):
     login_required=True,
     request_schema=PortfolioCreateAndUpdateSchema,
 )
-async def create_portfolio(request):
-    portfolio_schema: PortfolioCreateAndUpdateSchema = request.populated_schema
+async def create_portfolio(
+    request: PopulatedSchemaRequest[PortfolioCreateAndUpdateSchema],
+):
     portfolio: Portfolio = await Portfolio.objects.acreate(
-        name=portfolio_schema.name,
+        name=request.populated_schema.name,
         owner=request.user,
     )
     return JsonResponse(await _serialize_portfolio(portfolio))
 
 
 @api_view(login_required=True, permissions=[IsPortfolioOwner()])
-async def delete_portfolio(request, pk: int):
+async def delete_portfolio(request: HttpRequest, pk: int):
     portfolio: Portfolio = await aget_object_or_404_json(
         Portfolio.objects.active().only(),
         pk=pk,
@@ -106,13 +108,16 @@ async def delete_portfolio(request, pk: int):
     permissions=[IsPortfolioOwner()],
     request_schema=PortfolioCreateAndUpdateSchema,
 )
-async def update_portfolio(request, pk: int):
+async def update_portfolio(
+    request: PopulatedSchemaRequest[PortfolioCreateAndUpdateSchema],
+    pk: int,
+):
     portfolio: Portfolio = await aget_object_or_404_json(
         Portfolio.objects.active().prefetch_items(),
         pk=pk,
     )
     portfolio.name = request.populated_schema.name
-    await portfolio.asave()
+    await portfolio.asave(update_fields=['name'])
     return JsonResponse(await _serialize_portfolio_with_securities(portfolio))
 
 
@@ -132,7 +137,7 @@ class PortfolioListItemSchema:
 
 
 @api_view(methods=['GET'], login_required=True)
-async def portfolio_list(request):
+async def portfolio_list(request: HttpRequest) -> HttpResponse:
     select_fields = tuple(PortfolioListItemSchema.__dataclass_fields__.keys())
     user_portfolios = Portfolio.objects.filter(
         owner_id=request.user.id,

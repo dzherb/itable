@@ -81,10 +81,10 @@ async def create_table_snapshot(request):
         pk=table_snapshot_schema.template_id,
     )
 
-    table_snapshot = await TableSnapshot.objects.acreate(
-        name=table_snapshot_schema.name,
+    table_snapshot = await TableSnapshot.from_template(
         portfolio=portfolio,
         template=template,
+        name=table_snapshot_schema.name,
     )
     converter = ModelToDictConverter(
         source=table_snapshot,

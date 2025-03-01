@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 import logging
 import os
 from pathlib import Path
@@ -15,7 +16,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 DEBUG = os.getenv('DJANGO_DEBUG', '').lower() in TRUE_VALUES
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS: Sequence[str] = []
 
 INSTALLED_APPS = [
     'django.contrib.admin',

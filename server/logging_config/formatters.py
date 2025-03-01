@@ -37,9 +37,9 @@ LOG_RECORD_BUILTIN_ATTRS = {
 _LogDict = dict[str, str | int | float | None]
 
 
-def _avoid_unnecessary_format_calls(
-    fn: Callable[[logging.Formatter, logging.LogRecord], str],
-) -> Callable[[logging.Formatter, logging.LogRecord], str]:
+def _avoid_unnecessary_format_calls[T: logging.Formatter](
+    fn: Callable[[T, logging.LogRecord], str],
+) -> Callable[[T, logging.LogRecord], str]:
     # RotatingFileHandler calls format twice
     # when used with maxBytes argument.
     # So for this case we can cache the last call
@@ -53,7 +53,7 @@ def _avoid_unnecessary_format_calls(
     cache = Cache()
 
     @functools.wraps(fn)
-    def wrapper(self: logging.Formatter, record: logging.LogRecord):
+    def wrapper(self: T, record: logging.LogRecord):
         record_hash = hash(record) + hash(record.created)
         if cache.last_record_hash == record_hash:
             return cache.last_returned_message

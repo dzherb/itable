@@ -5,6 +5,7 @@ import logging
 from django.contrib import auth
 from django.http import JsonResponse
 
+from api.request_checkers.schema_checker import PopulatedSchemaRequest
 from api.views.api_view import api_view
 
 logger = logging.getLogger('api')
@@ -17,7 +18,7 @@ class UserCredentialsSchema:
 
 
 @api_view(methods=['POST'], request_schema=UserCredentialsSchema)
-async def login(request):
+async def login(request: PopulatedSchemaRequest[UserCredentialsSchema]):
     user_credentials: UserCredentialsSchema = request.populated_schema
     user = await auth.aauthenticate(
         request,

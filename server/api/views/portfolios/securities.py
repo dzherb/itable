@@ -10,6 +10,7 @@ from api.helpers import aget_object_or_404_json
 from api.helpers.dispatcher import create_dispatcher
 from api.helpers.model_converters import ModelToDictConverter
 from api.permissions import IsPortfolioOwner
+from api.request_checkers.schema_checker import PopulatedSchemaRequest
 from api.views.api_view import api_view
 from exchange.models import Security
 from portfolio.models import PortfolioItem
@@ -61,7 +62,10 @@ async def _serialize_portfolio_item(item: PortfolioItem) -> dict:
     permissions=[IsPortfolioOwner(argument_name='portfolio_id')],
     request_schema=PortfolioSecurityAddSchema,
 )
-async def add_portfolio_security(request, portfolio_id: int):
+async def add_portfolio_security(
+    request: PopulatedSchemaRequest[PortfolioSecurityAddSchema],
+    portfolio_id: int,
+):
     item_schema: PortfolioSecurityAddSchema = request.populated_schema
 
     security: Security = await aget_object_or_404_json(

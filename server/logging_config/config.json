@@ -49,7 +49,8 @@
       "formatter": "json",
       "filename": "logs/itable.log.jsonl",
       "maxBytes": 3145728,
-      "backupCount": 8
+      "backupCount": 8,
+      "delay": true
     },
     "queue_handler": {
       "class": "logging_config.handlers.JSONAwareQueueHandler",
