@@ -1,29 +1,43 @@
+import logging
 from typing import final, override
 
 import aiohttp
 
+from exchange.exchange.stock_markets.moex import BaseMOEX, moex_circuit_breaker
 from exchange.exchange.stock_markets.moex.iss_client import (
     ISSClientFactory,
-    ISSClientFactoryImpl,
 )
 from exchange.exchange.synchronization.index_providers import (
     IndexProviderProtocol,
     SecurityWeightDict,
 )
 
+logger = logging.getLogger('exchange.synchronization')
+
 
 @final
-class IMOEXProvider(IndexProviderProtocol):
-    def __init__(self, *, client_factory: ISSClientFactory | None = None):
-        self._client_factory = client_factory or ISSClientFactoryImpl()
-        self._session = None
+class IMOEXProvider(BaseMOEX, IndexProviderProtocol):
+    def __init__(
+        self,
+        *,
+        client_factory: ISSClientFactory | None = None,
+        timeout: aiohttp.ClientTimeout | int | None = None,
+    ):
+        super().__init__(client_factory=client_factory, timeout=timeout)
         self._result: list[SecurityWeightDict] = []
 
     @override
+    @moex_circuit_breaker
     async def get_index_content(self) -> list[SecurityWeightDict]:
-        async with aiohttp.ClientSession() as session:
-            self._session = session
-            await self._collect_weights()
+        try:
+            async with self:
+                await self._collect_weights()
+        except Exception:
+            logger.error(
+                'Unexpected error while collecting IMOEX index weights',
+                exc_info=True,
+            )
+            raise
 
         return self._result
 

@@ -119,6 +119,15 @@ wheels = [
 ]
 
 [[package]]
+name = "circuitbreaker"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/23/57/3bc8f0885c6914336d0b2fe36bf740476f0c827b3fb991993d67c1a9d3f3/circuitbreaker-2.0.0.tar.gz", hash = "sha256:28110761ca81a2accbd6b33186bc8c433e69b0933d85e89f280028dbb8c1dd14", size = 10736 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ac/e0/33bbe68911a05fdec50d89dcffeac7bf84050e101e2d6dd8088ac8a62cae/circuitbreaker-2.0.0-py2.py3-none-any.whl", hash = "sha256:c8c6f044b616cd5066368734ce4488020392c962b4bd2869d406d883c36d9859", size = 7644 },
+]
+
+[[package]]
 name = "click"
 version = "8.1.8"
 source = { registry = "https://pypi.org/simple" }
@@ -275,6 +284,7 @@ dependencies = [
     { name = "aiomoex" },
     { name = "apscheduler" },
     { name = "async-lru" },
+    { name = "circuitbreaker" },
     { name = "dacite" },
     { name = "django" },
     { name = "load-dotenv" },
@@ -296,6 +306,7 @@ requires-dist = [
     { name = "aiomoex", specifier = ">=2.1.2" },
     { name = "apscheduler", specifier = ">=3.11.0" },
     { name = "async-lru", specifier = ">=2.0.4" },
+    { name = "circuitbreaker", specifier = ">=2.0.0" },
     { name = "dacite", specifier = ">=1.9.2" },
     { name = "django", specifier = ">=5.1.6" },
     { name = "load-dotenv", specifier = ">=0.1.0" },

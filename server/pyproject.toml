@@ -7,6 +7,7 @@ dependencies = [
     "aiomoex>=2.1.2",
     "apscheduler>=3.11.0",
     "async-lru>=2.0.4",
+    "circuitbreaker>=2.0.0",
     "dacite>=1.9.2",
     "django>=5.1.6",
     "load-dotenv>=0.1.0",

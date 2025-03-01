@@ -1,12 +1,18 @@
+import time
+from unittest import mock
+
 import aiohttp
 import aiomoex
+from circuitbreaker import CircuitBreakerError
 from django.test import TestCase
 
 from exchange.exchange.stock_markets import MOEX
+from exchange.exchange.stock_markets.moex import moex_circuit_breaker
 from exchange.exchange.stock_markets.moex.iss_client import (
     ISSClient,
     ISSClientFactory,
 )
+from exchange.exchange.stock_markets.moex.moex import MOEXConnectionError
 from exchange.exchange.synchronization.index_providers.imoex import (
     IMOEXProvider,
 )
@@ -199,3 +205,66 @@ class MOEXTestCase(TestCase):
         self.assertEqual(len(securities), 2)
         for security in securities:
             self.assertTrue(security['ticker'] in valid_tickers)
+
+
+class MockTimedOutISSClient(ISSClient):
+    async def get(self) -> aiomoex.TablesDict:
+        raise aiohttp.ConnectionTimeoutError
+
+
+class MockISSTimedOutClientFactory(ISSClientFactory):
+    def get_client(
+        self,
+        session: aiohttp.ClientSession,
+        resource: str,
+        arguments: aiomoex.client.WebQuery | None = None,
+    ) -> ISSClient:
+        return MockTimedOutISSClient()
+
+
+class MOEXCircuitBreakerTestCase(TestCase):
+    CIRCUIT_BREAKER_FAILURE_THRESHOLD = 5
+    CIRCUIT_BREAKER_RECOVERY_TIMEOUT = 30
+
+    def setUp(self):
+        self.timeout_client = MOEX(
+            client_factory=MockISSTimedOutClientFactory(),
+        )
+        moex_circuit_breaker.reset()
+
+    def tearDown(self):
+        moex_circuit_breaker.reset()
+
+    async def test_circuit_breaker_opens_after_series_of_failed_connections(
+        self,
+    ):
+        for _ in range(self.CIRCUIT_BREAKER_FAILURE_THRESHOLD):
+            with self.assertRaises(MOEXConnectionError):
+                await self.timeout_client.get_securities(['GAZP'])
+
+        with self.assertRaises(CircuitBreakerError):
+            await self.timeout_client.get_securities(['GAZP'])
+
+    async def test_moex_circuit_breaker_is_global(self):
+        for _ in range(self.CIRCUIT_BREAKER_FAILURE_THRESHOLD):
+            with self.assertRaises(MOEXConnectionError):
+                await self.timeout_client.get_securities(['GAZP'])
+
+        client = MOEX(client_factory=MockISSClientFactory())
+        with self.assertRaises(CircuitBreakerError):
+            await client.get_securities(['GAZP'])
+
+    async def test_circuit_breaker_closes_after_recovery_timeout(self):
+        for _ in range(self.CIRCUIT_BREAKER_FAILURE_THRESHOLD):
+            with self.assertRaises(MOEXConnectionError):
+                await self.timeout_client.get_securities(['GAZP'])
+
+        client = MOEX(client_factory=MockISSClientFactory())
+        with self.assertRaises(CircuitBreakerError):
+            await client.get_securities(['GAZP'])
+
+        with mock.patch('circuitbreaker.monotonic') as mock_monotonic:
+            mock_monotonic.return_value = (
+                time.monotonic() + self.CIRCUIT_BREAKER_RECOVERY_TIMEOUT
+            )
+            await client.get_securities(['GAZP'])
