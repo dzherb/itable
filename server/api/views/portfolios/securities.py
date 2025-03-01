@@ -2,15 +2,20 @@ import dataclasses
 import datetime
 from http import HTTPStatus
 import logging
+import typing
 
 from django.db import IntegrityError
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 
 from api.helpers import aget_object_or_404_json
 from api.helpers.dispatcher import create_dispatcher
 from api.helpers.model_converters import ModelToDictConverter
 from api.permissions import IsPortfolioOwner
 from api.request_checkers.schema_checker import PopulatedSchemaRequest
+from api.typedefs import (
+    AuthenticatedPopulatedSchemaRequest,
+    AuthenticatedRequest,
+)
 from api.views.api_view import api_view
 from exchange.models import Security
 from portfolio.models import PortfolioItem
@@ -21,23 +26,25 @@ PORTFOLIO_ITEM_404_NAME = 'portfolio security'
 
 
 class PortfolioItemValidationMixin:
+    quantity: int
+
     def validate_quantity(self):
         if self.quantity <= 0:
             raise ValueError('quantity must be greater than zero')
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(slots=True, frozen=True)
 class PortfolioSecurityAddSchema(PortfolioItemValidationMixin):
     ticker: str
     quantity: int
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(slots=True, frozen=True)
 class PortfolioSecurityUpdateSchema(PortfolioItemValidationMixin):
     quantity: int
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(slots=True, frozen=True)
 class PortfolioSecuritySchema(PortfolioItemValidationMixin):
     portfolio_id: int
     ticker: str
@@ -45,7 +52,9 @@ class PortfolioSecuritySchema(PortfolioItemValidationMixin):
     created_at: datetime.datetime
 
 
-async def _serialize_portfolio_item(item: PortfolioItem) -> dict:
+async def _serialize_portfolio_item(
+    item: PortfolioItem,
+) -> dict[str, typing.Any]:
     converter = ModelToDictConverter(
         source=item,
         schema=PortfolioSecuritySchema,
@@ -53,7 +62,8 @@ async def _serialize_portfolio_item(item: PortfolioItem) -> dict:
             'ticker': 'security__ticker',
         },
     )
-    return await converter.convert()
+    serialized_item = await converter.convert()
+    return typing.cast(dict[str, typing.Any], serialized_item)
 
 
 @api_view(
@@ -100,10 +110,12 @@ async def add_portfolio_security(
     request_schema=PortfolioSecurityUpdateSchema,
 )
 async def update_portfolio_security(
-    request,
+    request: AuthenticatedPopulatedSchemaRequest[
+        PortfolioSecurityUpdateSchema
+    ],
     portfolio_id: int,
     security_ticker: int,
-):
+) -> HttpResponse:
     portfolio_item: PortfolioItem = await aget_object_or_404_json(
         PortfolioItem.objects.select_related('security').only(
             'portfolio_id',
@@ -115,8 +127,7 @@ async def update_portfolio_security(
         security__ticker=security_ticker,
         object_error_name=PORTFOLIO_ITEM_404_NAME,
     )
-    schema: PortfolioSecurityUpdateSchema = request.populated_schema
-    portfolio_item.quantity = schema.quantity
+    portfolio_item.quantity = request.populated_schema.quantity
     await portfolio_item.asave(update_fields=['quantity'])
 
     return JsonResponse(await _serialize_portfolio_item(portfolio_item))
@@ -127,10 +138,10 @@ async def update_portfolio_security(
     permissions=[IsPortfolioOwner(argument_name='portfolio_id')],
 )
 async def remove_portfolio_security(
-    request,
+    request: AuthenticatedRequest,
     portfolio_id: int,
     security_ticker: int,
-):
+) -> HttpResponse:
     portfolio_item: PortfolioItem = await aget_object_or_404_json(
         PortfolioItem.objects.only(),
         portfolio_id=portfolio_id,

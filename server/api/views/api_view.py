@@ -1,7 +1,7 @@
 from collections.abc import Iterable, Sequence
 import functools
 from http import HTTPStatus
-from typing import Callable
+import typing
 
 from django.http import HttpRequest, HttpResponse, JsonResponse
 
@@ -15,27 +15,11 @@ from api.request_checkers import (
 )
 from api.request_checkers.checker_protocol import Checker
 from api.request_checkers.methods_checker import Methods
+from api.typedefs import AsyncViewFunction
 
 
-class api_view:  # noqa: N801
-    def __new__(
-        cls,
-        view_function: Callable | None = None,
-        **kwargs,
-    ) -> 'api_view' | Callable:
-        self: 'api_view' = super().__new__(cls)
-        self._init(**kwargs)
-
-        if (
-            view_function is not None
-            and callable(view_function)
-            and len(kwargs) == 0
-        ):
-            return self.__call__(view_function)
-
-        return self
-
-    def _init(
+class _ApiViewWrapper:
+    def __init__(
         self,
         *,
         methods: Sequence[Methods] | None = None,
@@ -54,21 +38,8 @@ class api_view:  # noqa: N801
         # do this on every decorated function call
         self._all_checkers = self._get_checkers()
 
-    def __init__(
-        self,
-        *,
-        methods: Sequence[Methods] | None = None,
-        login_required: bool = False,
-        permissions: Iterable[Permission] | None = None,
-        request_schema: type | None = None,
-        checkers: Iterable[Checker] | None = None,
-    ):
-        # We don't really need this method,
-        # but without it, we lose type checking.
-        pass
-
-    def __call__(self, decorated_function: Callable) -> Callable:
-        @functools.wraps(decorated_function)
+    def __call__(self, view_function: AsyncViewFunction) -> AsyncViewFunction:
+        @functools.wraps(view_function)
         async def wrapper(
             request: HttpRequest,
             *args,
@@ -83,7 +54,7 @@ class api_view:  # noqa: N801
                 if checks_result is not None:
                     return checks_result
 
-                return await decorated_function(request, *args, **kwargs)
+                return await view_function(request, *args, **kwargs)
             except exceptions.NotFoundError as e:
                 # This way we can handle aget_object_or_404_json call
                 return JsonResponse(
@@ -123,3 +94,52 @@ class api_view:  # noqa: N801
             checkers += self._user_checkers
 
         return checkers
+
+
+@typing.overload
+def api_view(
+    view_function: AsyncViewFunction,
+    /,
+    *,
+    methods: Sequence[Methods] | None = None,
+    login_required: bool = False,
+    permissions: Iterable[Permission] | None = None,
+    request_schema: type | None = None,
+    checkers: Iterable[Checker] | None = None,
+) -> AsyncViewFunction: ...
+
+
+@typing.overload
+def api_view(
+    view_function: None = None,
+    /,
+    *,
+    methods: Sequence[Methods] | None = None,
+    login_required: bool = False,
+    permissions: Iterable[Permission] | None = None,
+    request_schema: type | None = None,
+    checkers: Iterable[Checker] | None = None,
+) -> _ApiViewWrapper: ...
+
+
+def api_view(
+    view_function=None,
+    /,
+    *,
+    methods=None,
+    login_required=False,
+    permissions=None,
+    request_schema=None,
+    checkers=None,
+):
+    if view_function is not None:
+        assert callable(view_function)
+        return _ApiViewWrapper()(view_function)
+
+    return _ApiViewWrapper(
+        methods=methods,
+        login_required=login_required,
+        permissions=permissions,
+        request_schema=request_schema,
+        checkers=checkers,
+    )

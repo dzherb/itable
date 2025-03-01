@@ -1,7 +1,11 @@
+import typing
 from typing import final, override
+
+from django.db import models
 
 from exchange.exchange.synchronization.index_providers import (
     IndexProviderProtocol,
+    SecurityWeightDict,
 )
 from exchange.exchange.synchronization.index_providers.imoex import (
     IMOEXProvider,
@@ -14,6 +18,10 @@ import investment_tables.models
 from utils.db_helpers import aatomic
 
 
+class SecurityWeightDictWithId(SecurityWeightDict):
+    id: typing.NotRequired[int]
+
+
 @final
 class IMOEXSynchronizer(IndexSynchronizerProtocol):
     IMOEX_TABLE_TEMPLATE_SLUG = 'imoex'
@@ -23,11 +31,12 @@ class IMOEXSynchronizer(IndexSynchronizerProtocol):
 
     @override
     @aatomic
-    async def synchronize(self):
+    async def synchronize(self) -> None:
         securities = await self._provider.get_index_content()
 
-        ticker_to_security_map: dict[str, dict[str, str]] = {
-            security['ticker']: security for security in securities
+        ticker_to_security_map: dict[str, SecurityWeightDictWithId] = {
+            security['ticker']: typing.cast(SecurityWeightDictWithId, security)
+            for security in securities
         }
         tickers = list(ticker_to_security_map.keys())
 
@@ -50,18 +59,22 @@ class IMOEXSynchronizer(IndexSynchronizerProtocol):
         # for currently active securities.
         await table_template.items.aupdate(is_active=False)
 
-        async for security in exchange.models.Security.objects.filter(
-            ticker__in=tickers,
-        ):
+        db_securities: models.QuerySet[exchange.models.Security] = (
+            exchange.models.Security.objects.filter(
+                ticker__in=tickers,
+            )
+        )
+
+        async for security in db_securities:
             ticker_to_security_map[security.ticker]['id'] = security.id
 
         template_items_to_create = []
-        for security in ticker_to_security_map.values():
+        for security_dict in ticker_to_security_map.values():
             template_items_to_create.append(
                 investment_tables.models.TableTemplateItem(
-                    security_id=security['id'],
+                    security_id=security_dict['id'],
                     template_id=table_template.id,
-                    weight=security['weight'],
+                    weight=security_dict['weight'],
                     is_active=True,
                 ),
             )

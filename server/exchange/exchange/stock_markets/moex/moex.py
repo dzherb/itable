@@ -181,5 +181,13 @@ class MOEX(BaseMOEX, StockMarketProtocol):
             arguments,
         )
 
-    def _add_to_results(self, ticker: str, security: dict):
-        self._result[ticker] = self._result.get(ticker, {}) | security
+    def _add_to_results(self, ticker: str, security: SecurityDict):
+        default_security = SecurityDict(
+            short_name='',
+            ticker=ticker,
+            price=0,
+            lot_size=1,
+        )
+        self._result[ticker] = (
+            self._result.get(ticker, default_security) | security
+        )

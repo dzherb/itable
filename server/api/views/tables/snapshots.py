@@ -1,7 +1,8 @@
 import dataclasses
 import datetime
 
-from django.http import JsonResponse
+from django.db import models
+from django.http import HttpResponse, JsonResponse
 
 from api.helpers import aget_object_or_404_json
 from api.helpers.dispatcher import create_dispatcher
@@ -12,6 +13,10 @@ from api.helpers.model_converters import (
 from api.helpers.schema_mixins import (
     ValidateIdFieldsMixin,
     ValidateNameSchemaMixin,
+)
+from api.typedefs import (
+    AuthenticatedPopulatedSchemaRequest,
+    AuthenticatedRequest,
 )
 from api.views.api_view import api_view
 from investment_tables.models import TableSnapshot, TableTemplate
@@ -34,8 +39,8 @@ class TableSnapshotSchema:
 
 
 @api_view(login_required=True)
-async def table_snapshot_list(request):
-    user_snapshots = (
+async def table_snapshot_list(request: AuthenticatedRequest) -> HttpResponse:
+    user_snapshots: models.QuerySet[TableSnapshot] = (
         TableSnapshot.objects.select_related('template')
         .owned_by(request.user)
         .active()
@@ -70,7 +75,9 @@ class TableSnapshotCreateSchema(
 
 
 @api_view(login_required=True, request_schema=TableSnapshotCreateSchema)
-async def create_table_snapshot(request):
+async def create_table_snapshot(
+    request: AuthenticatedPopulatedSchemaRequest[TableSnapshotCreateSchema],
+) -> HttpResponse:
     table_snapshot_schema: TableSnapshotCreateSchema = request.populated_schema
     portfolio = await aget_object_or_404_json(
         Portfolio.objects.filter(owner=request.user),

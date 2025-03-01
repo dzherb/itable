@@ -2,7 +2,6 @@ import abc
 import asyncio
 from collections.abc import Iterable, Mapping, Sequence
 import dataclasses
-from dataclasses import is_dataclass
 import typing
 from typing import override
 
@@ -34,8 +33,7 @@ class Converter[T: models.Model, D: 'DataclassInstance', E](abc.ABC):
         if skip_fields is None:
             skip_fields = ()
 
-        self._skip_fields = set(skip_fields)
-
+        self._skip_fields: typing.Iterable[str] = set(skip_fields)
         self._many = many
 
     @abc.abstractmethod
@@ -112,8 +110,11 @@ class ModelToDataclassConverter[T: models.Model, E: 'DataclassInstance'](
             raise TypeError(f'Type mismatch for field "{field_name}"')
 
 
-class ModelToDictConverter[T: models.Model, D: 'DataclassInstance', E: dict](
-    Converter[T, D, E],
+type _SerializedDataclass = dict[str, typing.Any]
+
+
+class ModelToDictConverter[T: models.Model, D: 'DataclassInstance'](
+    Converter[T, D, _SerializedDataclass],
 ):
     def __init__(
         self,
@@ -140,11 +141,17 @@ class ModelToDictConverter[T: models.Model, D: 'DataclassInstance', E: dict](
         )
 
     @override
-    async def convert(self) -> E | Sequence[E]:
+    async def convert(
+        self,
+    ) -> _SerializedDataclass | Sequence[_SerializedDataclass]:
         result = await self._intermediate_converter.convert()
 
-        if self._many and isinstance(result, Sequence):
-            return [typing.cast(E, dataclasses.asdict(val)) for val in result]
+        if isinstance(result, Sequence) and self._many:
+            return [self._dataclass_to_dict(item) for item in result]
 
-        assert is_dataclass(result)
-        return typing.cast(E, dataclasses.asdict(result))
+        assert not isinstance(result, Sequence)
+        return self._dataclass_to_dict(result)
+
+    @staticmethod
+    def _dataclass_to_dict(dataclass: D) -> _SerializedDataclass:
+        return dataclasses.asdict(dataclass)

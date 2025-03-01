@@ -1,4 +1,5 @@
-from collections.abc import Callable
+from collections.abc import Coroutine
+import typing
 
 from asgiref.sync import sync_to_async
 from django.db.transaction import Atomic
@@ -12,8 +13,16 @@ class AsyncAtomic(Atomic):
     __aexit__ = sync_to_async(Atomic.__exit__, thread_sensitive=True)
 
 
-def aatomic(func: Callable):
-    async def wrapper(*args, **kwargs):
+class _AnyAsyncFunc[T](typing.Protocol):
+    def __call__(
+        self,
+        *args: typing.Any,
+        **kwargs: typing.Any,
+    ) -> Coroutine[typing.Any, typing.Any, T]: ...
+
+
+def aatomic[T](func: _AnyAsyncFunc[T]) -> _AnyAsyncFunc[T]:
+    async def wrapper(*args, **kwargs) -> T:
         async with AsyncAtomic():
             return await func(*args, **kwargs)
 
