@@ -8,7 +8,7 @@ from portfolio.models import Portfolio
 
 
 class IsPortfolioOwner(Permission):
-    def __init__(self, argument_name='pk'):
+    def __init__(self, argument_name: str = 'pk'):
         self.argument_name = argument_name
 
     @override

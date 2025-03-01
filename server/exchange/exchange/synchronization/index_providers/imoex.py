@@ -42,7 +42,7 @@ class IMOEXProvider(BaseMOEX, IndexProviderProtocol):
 
         return self._result
 
-    async def _collect_weights(self):
+    async def _collect_weights(self) -> None:
         resource = (
             '/statistics/engines/stock/markets/index/analytics/IMOEX.json'
         )

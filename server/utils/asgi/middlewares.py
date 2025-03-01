@@ -1,5 +1,6 @@
 from collections.abc import Callable
 import traceback
+import typing
 
 from asgiref.typing import (
     ASGI3Application,
@@ -11,16 +12,21 @@ from typing_extensions import AsyncContextManager
 
 
 class LifespanMiddleware:
-    def __init__(self, app, *, lifespan):
-        self.app: ASGI3Application = app
-        self.lifespan: Callable[[], AsyncContextManager] = lifespan
+    def __init__(
+        self,
+        app: ASGI3Application,
+        *,
+        lifespan: Callable[[], AsyncContextManager[typing.Any, None]],
+    ) -> None:
+        self.app = app
+        self.lifespan = lifespan
 
     async def __call__(
         self,
         scope: Scope,
         receive: ASGIReceiveCallable,
         send: ASGISendCallable,
-    ):
+    ) -> None:
         if scope['type'] == 'lifespan':
             await self.handle_lifespan(scope, receive, send)
             return
@@ -32,7 +38,7 @@ class LifespanMiddleware:
         scope: Scope,
         receive: ASGIReceiveCallable,
         send: ASGISendCallable,
-    ):
+    ) -> None:
         assert scope['type'] == 'lifespan'
         message = await receive()
         assert message['type'] == 'lifespan.startup'

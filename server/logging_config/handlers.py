@@ -13,7 +13,7 @@ class JSONAwareQueueHandler(logging.handlers.QueueHandler):
     """
 
     @override
-    def prepare(self, record):
+    def prepare(self, record: logging.LogRecord) -> logging.LogRecord:
         # Make copy of record to avoid affecting other handlers in the chain.
         record = copy.copy(record)
 
@@ -32,7 +32,7 @@ class JSONAwareQueueHandler(logging.handlers.QueueHandler):
         record.stack_info = None
         return record
 
-    def _get_formatter(self):
+    def _get_formatter(self) -> logging.Formatter:
         if self.formatter:
             return self.formatter
         return logging.Formatter()

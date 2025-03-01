@@ -1,3 +1,4 @@
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 import logging
 import os
@@ -18,7 +19,7 @@ application = typing.cast(ASGI3Application, get_asgi_application())
 
 
 @asynccontextmanager
-async def tasks_scheduler_lifespan():
+async def tasks_scheduler_lifespan() -> AsyncIterator[None]:
     from tasks_scheduler.scheduler import scheduler
 
     scheduler.start()

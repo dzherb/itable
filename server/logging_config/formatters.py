@@ -4,6 +4,7 @@ import datetime
 import functools
 import json
 import logging
+import typing
 from typing import final, override
 
 from django.utils import timezone
@@ -53,10 +54,10 @@ def _avoid_unnecessary_format_calls[T: logging.Formatter](
     cache = Cache()
 
     @functools.wraps(fn)
-    def wrapper(self: T, record: logging.LogRecord):
+    def wrapper(self: T, record: logging.LogRecord) -> str:
         record_hash = hash(record) + hash(record.created)
         if cache.last_record_hash == record_hash:
-            return cache.last_returned_message
+            return typing.cast(str, cache.last_returned_message)
 
         message = fn(self, record)
 
@@ -114,7 +115,7 @@ class _LogDictBuilder:
         self._add_extra_fields()
         return self._log_dict
 
-    def _add_always_fields(self):
+    def _add_always_fields(self) -> None:
         self._log_dict['level'] = self._record.levelname
         self._log_dict['message'] = self._record.getMessage()
         self._log_dict['timestamp'] = self._get_created_time()
@@ -123,7 +124,7 @@ class _LogDictBuilder:
         dt = datetime.datetime.fromtimestamp(self._record.created)
         return timezone.make_aware(dt).isoformat()
 
-    def _add_user_configured_fields(self):
+    def _add_user_configured_fields(self) -> None:
         for json_field, log_attribute in self._fields_to_add.items():
             if json_field not in self._log_dict and hasattr(
                 self._record,
@@ -134,7 +135,7 @@ class _LogDictBuilder:
                     log_attribute,
                 )
 
-    def _add_traceback_and_stack_info(self):
+    def _add_traceback_and_stack_info(self) -> None:
         if self._record.exc_text:
             self._log_dict['traceback'] = self._record.exc_text
         elif self._record.exc_info is not None:
@@ -147,7 +148,7 @@ class _LogDictBuilder:
                 self._record.stack_info,
             )
 
-    def _add_extra_fields(self):
+    def _add_extra_fields(self) -> None:
         for key, val in self._record.__dict__.items():
             if key not in LOG_RECORD_BUILTIN_ATTRS:
                 self._log_dict[key] = val

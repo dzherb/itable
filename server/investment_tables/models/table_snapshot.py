@@ -1,5 +1,6 @@
 import typing
 
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 from utils.abstract_models import (
@@ -13,10 +14,10 @@ if typing.TYPE_CHECKING:
 
 
 class TableSnapshotQuerySet(models.QuerySet):
-    def active(self):
+    def active(self) -> typing.Self:
         return self.filter(is_active=True)
 
-    def owned_by(self, user):
+    def owned_by(self, user: AbstractUser) -> typing.Self:
         return self.filter(portfolio__owner=user)
 
 

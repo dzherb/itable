@@ -53,7 +53,9 @@ async def _serialize_portfolio(portfolio: Portfolio) -> dict[str, typing.Any]:
     return typing.cast(dict[str, typing.Any], serialized_portfolio)
 
 
-async def _serialize_portfolio_with_securities(portfolio: Portfolio) -> dict:
+async def _serialize_portfolio_with_securities(
+    portfolio: Portfolio,
+) -> dict[str, typing.Any]:
     converter = ModelToDictConverter(
         source=portfolio,
         schema=PortfolioSchema,

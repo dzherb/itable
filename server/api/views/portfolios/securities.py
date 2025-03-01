@@ -28,7 +28,7 @@ PORTFOLIO_ITEM_404_NAME = 'portfolio security'
 class PortfolioItemValidationMixin:
     quantity: int
 
-    def validate_quantity(self):
+    def validate_quantity(self) -> None:
         if self.quantity <= 0:
             raise ValueError('quantity must be greater than zero')
 
@@ -75,7 +75,7 @@ async def _serialize_portfolio_item(
 async def add_portfolio_security(
     request: PopulatedSchemaRequest[PortfolioSecurityAddSchema],
     portfolio_id: int,
-):
+) -> HttpResponse:
     item_schema: PortfolioSecurityAddSchema = request.populated_schema
 
     security: Security = await aget_object_or_404_json(

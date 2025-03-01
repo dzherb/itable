@@ -3,5 +3,5 @@ from exchange.exchange.synchronization.imoex_synchronizer import (
 )
 
 
-async def imoex_synchronization():
+async def imoex_synchronization() -> None:
     await IMOEXSynchronizer().synchronize()
