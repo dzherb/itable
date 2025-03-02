@@ -16,18 +16,18 @@ class _AlwaysEquals:
         return 0
 
 
-class _ALRUCacheParams(typing.TypedDict):
-    maxsize: int | None
-    typed: bool
-    ttl: float | None
-
-
 class _AnyAsyncMethod[T](typing.Protocol):
     def __call__(
         self,
         *args: typing.Any,
         **kwargs: typing.Any,
     ) -> Coroutine[typing.Any, typing.Any, T]: ...
+
+
+class _ALRUCacheParams(typing.TypedDict, total=False):
+    maxsize: int | None
+    typed: bool
+    ttl: float | None
 
 
 def alru_method_shared_cache[T](

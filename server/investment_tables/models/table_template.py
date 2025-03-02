@@ -15,5 +15,5 @@ class TableTemplate(CreatedUpdatedAbstractModel, models.Model):
         related_query_name='template',
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name

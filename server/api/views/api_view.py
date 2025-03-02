@@ -15,7 +15,7 @@ from api.request_checkers import (
 )
 from api.request_checkers.checker_protocol import Checker
 from api.request_checkers.methods_checker import Methods
-from api.typedefs import AsyncViewFunction
+from api.typedefs import ApiViewFunction, AsyncViewFunction
 
 
 class _ApiViewWrapper:
@@ -38,12 +38,15 @@ class _ApiViewWrapper:
         # do this on every decorated function call
         self._all_checkers = self._get_checkers()
 
-    def __call__(self, view_function: AsyncViewFunction) -> AsyncViewFunction:
-        @functools.wraps(view_function)
+    def __call__[T: HttpRequest](
+        self,
+        api_view_function: ApiViewFunction[T],
+    ) -> AsyncViewFunction:
+        @functools.wraps(api_view_function)
         async def wrapper(
             request: HttpRequest,
-            *args,
-            **kwargs,
+            *args: typing.Any,
+            **kwargs: typing.Any,
         ) -> HttpResponse:
             try:
                 checks_result = await self._apply_checks(
@@ -54,7 +57,8 @@ class _ApiViewWrapper:
                 if checks_result is not None:
                     return checks_result
 
-                return await view_function(request, *args, **kwargs)
+                request = typing.cast(T, request)
+                return await api_view_function(request, *args, **kwargs)
             except exceptions.NotFoundError as e:
                 # This way we can handle aget_object_or_404_json call
                 return JsonResponse(
@@ -67,8 +71,8 @@ class _ApiViewWrapper:
     async def _apply_checks(
         self,
         request: HttpRequest,
-        *args,
-        **kwargs,
+        *args: typing.Any,
+        **kwargs: typing.Any,
     ) -> HttpResponse | None:
         for checker in self._all_checkers:
             if not await checker.check(request, *args, **kwargs):
@@ -97,22 +101,14 @@ class _ApiViewWrapper:
 
 
 @typing.overload
-def api_view(
-    view_function: AsyncViewFunction,
+def api_view[T: HttpRequest](
+    view_function: ApiViewFunction[T],
     /,
-    *,
-    methods: Sequence[Methods] | None = None,
-    login_required: bool = False,
-    permissions: Iterable[Permission] | None = None,
-    request_schema: type | None = None,
-    checkers: Iterable[Checker] | None = None,
 ) -> AsyncViewFunction: ...
 
 
 @typing.overload
 def api_view(
-    view_function: None = None,
-    /,
     *,
     methods: Sequence[Methods] | None = None,
     login_required: bool = False,
@@ -122,16 +118,16 @@ def api_view(
 ) -> _ApiViewWrapper: ...
 
 
-def api_view(
-    view_function=None,
+def api_view[T: HttpRequest](
+    view_function: ApiViewFunction[T] | None = None,
     /,
     *,
-    methods=None,
-    login_required=False,
-    permissions=None,
-    request_schema=None,
-    checkers=None,
-):
+    methods: Sequence[Methods] | None = None,
+    login_required: bool = False,
+    permissions: Iterable[Permission] | None = None,
+    request_schema: type | None = None,
+    checkers: Iterable[Checker] | None = None,
+) -> _ApiViewWrapper | AsyncViewFunction:
     if view_function is not None:
         assert callable(view_function)
         return _ApiViewWrapper()(view_function)

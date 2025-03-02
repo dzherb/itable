@@ -9,7 +9,16 @@ if typing.TYPE_CHECKING:
     from _typeshed import DataclassInstance
 
 
-class AsyncViewFunction[T: HttpRequest](typing.Protocol):
+class AsyncViewFunction(typing.Protocol):
+    def __call__(
+        self,
+        request: HttpRequest,
+        *args: typing.Any,
+        **kwargs: typing.Any,
+    ) -> Coroutine[typing.Any, typing.Any, HttpResponse]: ...
+
+
+class ApiViewFunction[T: HttpRequest](typing.Protocol):
     def __call__(
         self,
         request: T,

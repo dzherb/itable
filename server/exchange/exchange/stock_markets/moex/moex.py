@@ -63,7 +63,7 @@ class BaseMOEX:
         self._session: aiohttp.ClientSession
         self._timeout = timeout if timeout is not None else DEFAULT_TIMEOUT
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> None:
         self._session = aiohttp.ClientSession(
             raise_for_status=True,
             timeout=self._timeout,
@@ -76,7 +76,7 @@ class BaseMOEX:
         exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
-    ):
+    ) -> bool | None:
         await self._session.__aexit__(exc_type, exc_val, exc_tb)
 
         if exc_val:
@@ -126,7 +126,7 @@ class MOEX(BaseMOEX, StockMarketProtocol):
         )
         return list(self._result.values())
 
-    async def _collect_securities(self):
+    async def _collect_securities(self) -> None:
         resource = '/engines/stock/markets/shares/boards/TQBR/securities.json'
         client = self._get_client(
             resource=resource,
@@ -147,7 +147,7 @@ class MOEX(BaseMOEX, StockMarketProtocol):
                 },
             )
 
-    async def _collect_dividends(self):
+    async def _collect_dividends(self) -> None:
         tasks = []
         for ticker in self._tickers:
             tasks.append(self._get_dividends_for_ticker(ticker))
@@ -158,12 +158,15 @@ class MOEX(BaseMOEX, StockMarketProtocol):
                 continue
 
             last_dividend = dividends[-1]
-            ticker = last_dividend['secid']
+            ticker = typing.cast(str, last_dividend['secid'])
 
             self._add_to_results(
                 ticker,
                 {
-                    'last_dividend_value': last_dividend['value'],
+                    'last_dividend_value': typing.cast(
+                        float,
+                        last_dividend['value'],
+                    ),
                 },
             )
 
@@ -192,7 +195,7 @@ class MOEX(BaseMOEX, StockMarketProtocol):
         self,
         ticker: str,
         partial_security: PartialSecurityDict,
-    ):
+    ) -> None:
         default_security = SecurityDict(
             short_name='',
             ticker=ticker,

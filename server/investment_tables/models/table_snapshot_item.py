@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django_stubs_ext.db.models import TypedModelMeta
 
 from utils.abstract_models import CreatedUpdatedAbstractModel
 
@@ -19,7 +20,7 @@ class TableSnapshotItem(CreatedUpdatedAbstractModel, models.Model):
     )
     coefficient = models.FloatField(default=1)
 
-    class Meta:
+    class Meta(TypedModelMeta):
         unique_together = (('snapshot', 'template_item'),)
         constraints = [
             models.CheckConstraint(
@@ -28,9 +29,9 @@ class TableSnapshotItem(CreatedUpdatedAbstractModel, models.Model):
             ),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.snapshot} {self.template_item}'
 
-    def clean(self):
+    def clean(self) -> None:
         if self.snapshot.template_id != self.template_item.template_id:
             raise ValidationError('Inconsistent snapshot template')

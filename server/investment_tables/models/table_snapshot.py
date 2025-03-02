@@ -13,7 +13,7 @@ if typing.TYPE_CHECKING:
     from portfolio.models import Portfolio
 
 
-class TableSnapshotQuerySet(models.QuerySet):
+class TableSnapshotQuerySet(models.QuerySet['TableSnapshot']):
     def active(self) -> typing.Self:
         return self.filter(is_active=True)
 
@@ -46,7 +46,7 @@ class TableSnapshot(CreatedUpdatedAbstractModel, models.Model):
 
     objects = TableSnapshotQuerySet.as_manager()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
     @classmethod

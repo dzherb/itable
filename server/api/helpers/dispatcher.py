@@ -4,15 +4,16 @@ import typing
 from django.http import HttpRequest, HttpResponse
 
 from api.request_checkers import MethodsChecker
+from api.request_checkers.methods_checker import Methods
 from api.typedefs import AsyncViewFunction
 
 
-class _Handlers(typing.TypedDict):
-    get: typing.NotRequired[AsyncViewFunction]
-    post: typing.NotRequired[AsyncViewFunction]
-    put: typing.NotRequired[AsyncViewFunction]
-    patch: typing.NotRequired[AsyncViewFunction]
-    delete: typing.NotRequired[AsyncViewFunction]
+class _Handlers(typing.TypedDict, total=False):
+    get: AsyncViewFunction
+    post: AsyncViewFunction
+    put: AsyncViewFunction
+    patch: AsyncViewFunction
+    delete: AsyncViewFunction
 
 
 class Dispatcher:
@@ -20,21 +21,26 @@ class Dispatcher:
         for method_name, handler in method_handlers.items():
             setattr(self, method_name.lower(), handler)
 
-        allowed_methods: Sequence = tuple(
-            method.upper() for method in method_handlers.keys()
+        allowed_methods: Sequence[Methods] = tuple(
+            typing.cast(Methods, method.upper())
+            for method in method_handlers.keys()
         )
         self._methods_checker = MethodsChecker(allowed_methods)
 
-    def as_view(self):
+    def as_view(self) -> AsyncViewFunction:
         async def dispatch(
             request: HttpRequest,
-            *args,
-            **kwargs,
+            *args: typing.Any,
+            **kwargs: typing.Any,
         ) -> HttpResponse:
             if not await self._methods_checker.check(request):
                 return self._methods_checker.on_failure_response()
 
-            return await getattr(self, str(request.method).lower())(
+            handler: AsyncViewFunction = getattr(
+                self,
+                str(request.method).lower(),
+            )
+            return await handler(
                 request,
                 *args,
                 **kwargs,

@@ -1,10 +1,13 @@
+import typing
+
 from django.db import models
+from django_stubs_ext.db.models import TypedModelMeta
 
 from utils.abstract_models import CreatedUpdatedAbstractModel
 
 
-class TableTemplateItemQuerySet(models.QuerySet):
-    def active(self):
+class TableTemplateItemQuerySet(models.QuerySet['TableTemplateItem']):
+    def active(self) -> typing.Self:
         return self.filter(is_active=True)
 
 
@@ -27,7 +30,7 @@ class TableTemplateItem(CreatedUpdatedAbstractModel, models.Model):
 
     objects = TableTemplateItemQuerySet.as_manager()
 
-    class Meta:
+    class Meta(TypedModelMeta):
         unique_together = (('template', 'security'),)
         constraints = [
             models.CheckConstraint(
@@ -36,5 +39,5 @@ class TableTemplateItem(CreatedUpdatedAbstractModel, models.Model):
             ),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.template} - {self.security}'

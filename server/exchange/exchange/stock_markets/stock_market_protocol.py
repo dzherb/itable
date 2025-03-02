@@ -10,12 +10,12 @@ class SecurityDict(typing.TypedDict):
     last_dividend_value: typing.NotRequired[float]
 
 
-class PartialSecurityDict(typing.TypedDict):
-    short_name: typing.NotRequired[str]
-    ticker: typing.NotRequired[str]
-    price: typing.NotRequired[float]
-    lot_size: typing.NotRequired[int]
-    last_dividend_value: typing.NotRequired[float]
+class PartialSecurityDict(typing.TypedDict, total=False):
+    short_name: str
+    ticker: str
+    price: float
+    lot_size: int
+    last_dividend_value: float
 
 
 class StockMarketProtocol(typing.Protocol):

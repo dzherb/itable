@@ -11,6 +11,9 @@ from django.db import models
 if typing.TYPE_CHECKING:
     from _typeshed import DataclassInstance
 
+type _SourceFieldName = str
+type _AnyConverter = 'Converter[models.Model, DataclassInstance, typing.Any]'
+
 
 class Converter[T: models.Model, D: 'DataclassInstance', E](abc.ABC):
     def __init__(
@@ -18,7 +21,8 @@ class Converter[T: models.Model, D: 'DataclassInstance', E](abc.ABC):
         schema: type[D],
         source: T | models.QuerySet[T] | None = None,
         *,
-        fields_map: Mapping[str, typing.Union[str, 'Converter']] | None = None,
+        fields_map: Mapping[str, _SourceFieldName | _AnyConverter]
+        | None = None,
         skip_fields: Iterable[str] | None = None,
         many: bool = False,
     ):
@@ -39,7 +43,7 @@ class Converter[T: models.Model, D: 'DataclassInstance', E](abc.ABC):
     @abc.abstractmethod
     async def convert(self) -> E | Sequence[E]: ...
 
-    def _set_source_if_empty(self, source: T | models.QuerySet[T]):
+    def _set_source_if_empty(self, source: T | models.QuerySet[T]) -> None:
         if self._source is None:
             self._source = source
 
@@ -69,7 +73,7 @@ class ModelToDataclassConverter[T: models.Model, E: 'DataclassInstance'](
 
         return await self._convert_one(self._source)
 
-    async def _convert_one(self, source: T | models.QuerySet[T]):
+    async def _convert_one(self, source: T | models.QuerySet[T]) -> E:
         fields = self._dataclass.__dataclass_fields__
         init_kwargs: dict[str, typing.Any] = {}
         for field_name in fields:
@@ -103,7 +107,7 @@ class ModelToDataclassConverter[T: models.Model, E: 'DataclassInstance'](
 
         return self._dataclass(**init_kwargs)
 
-    def _check_type(self, field_name: str, value: typing.Any):
+    def _check_type(self, field_name: str, value: typing.Any) -> None:
         # Dataclasses don't do type checking, so we check ourselves.
         field_type = self._dataclass.__annotations__[field_name]
         if not is_instance(value, field_type):
@@ -121,7 +125,8 @@ class ModelToDictConverter[T: models.Model, D: 'DataclassInstance'](
         schema: type[D],
         source: T | models.QuerySet[T] | None = None,
         *,
-        fields_map: Mapping[str, typing.Union[str, 'Converter']] | None = None,
+        fields_map: Mapping[str, _SourceFieldName | _AnyConverter]
+        | None = None,
         skip_fields: typing.Sequence[str] | None = None,
         many: bool = False,
     ):
@@ -149,7 +154,7 @@ class ModelToDictConverter[T: models.Model, D: 'DataclassInstance'](
         if isinstance(result, Sequence) and self._many:
             return [self._dataclass_to_dict(item) for item in result]
 
-        assert not isinstance(result, Sequence)
+        result = typing.cast(D, result)
         return self._dataclass_to_dict(result)
 
     @staticmethod

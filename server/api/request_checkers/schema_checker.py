@@ -27,7 +27,7 @@ class _SchemaValidationRunner:
     def __init__(self, populated_schema: 'DataclassInstance'):
         self._populated_schema = populated_schema
 
-    def run_validations(self):
+    def run_validations(self) -> None:
         for field in self._populated_schema.__dataclass_fields__.keys():
             if self._should_validate(field):
                 self._validate_field(field)
@@ -52,8 +52,8 @@ class _SchemaValidationRunner:
         return True
 
 
-class SchemaChecker(Checker):
-    def __init__(self, request_schema: type):
+class SchemaChecker[D: 'DataclassInstance'](Checker):
+    def __init__(self, request_schema: type[D]):
         if not (
             is_dataclass(request_schema) and isinstance(request_schema, type)
         ):
@@ -63,7 +63,7 @@ class SchemaChecker(Checker):
         self._error: str | None = None
 
     @override
-    async def check(self, request: HttpRequest, *args, **kwargs) -> bool:
+    async def check(self, request: HttpRequest, *args: typing.Any, **kwargs: typing.Any) -> bool:
         try:
             request_data = self._get_request_data(request)
             populated_schema = dacite.from_dict(
@@ -72,7 +72,7 @@ class SchemaChecker(Checker):
             )
             _SchemaValidationRunner(populated_schema).run_validations()
 
-            request = typing.cast(PopulatedSchemaRequest, request)
+            request = typing.cast(PopulatedSchemaRequest[D], request)
             request.populated_schema = populated_schema
             return True
         except dacite.WrongTypeError as e:
@@ -85,14 +85,15 @@ class SchemaChecker(Checker):
             self._error = str(e)
             return False
 
-    def _get_request_data(self, request: HttpRequest) -> dict:
+    def _get_request_data(self, request: HttpRequest) -> dict[str, typing.Any]:
         if request.method == 'GET':
             return dict(request.GET)
 
         # Is request.body a blocking I/O operation?
         # Seems like currently there is no way to read it asynchronously.
         try:
-            return json.loads(request.body)
+            result = json.loads(request.body)
+            return typing.cast(dict[str, typing.Any], result)
         except json.JSONDecodeError as e:
             raise ValueError('request body contains invalid json') from e
 

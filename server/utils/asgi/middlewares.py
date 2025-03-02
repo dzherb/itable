@@ -1,4 +1,5 @@
 from collections.abc import Callable
+import contextlib
 import traceback
 import typing
 
@@ -8,7 +9,6 @@ from asgiref.typing import (
     ASGISendCallable,
     Scope,
 )
-from typing_extensions import AsyncContextManager
 
 
 class LifespanMiddleware:
@@ -16,7 +16,10 @@ class LifespanMiddleware:
         self,
         app: ASGI3Application,
         *,
-        lifespan: Callable[[], AsyncContextManager[typing.Any, None]],
+        lifespan: Callable[
+            [],
+            contextlib.AbstractAsyncContextManager[typing.Any, None],
+        ],
     ) -> None:
         self.app = app
         self.lifespan = lifespan

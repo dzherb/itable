@@ -1,14 +1,17 @@
+import typing
+
 from django.conf import settings
 from django.db import models
+from django_stubs_ext.db.models import TypedModelMeta
 
 from utils.abstract_models import CreatedUpdatedAbstractModel
 
 
-class PortfolioQuerySet(models.QuerySet):
-    def active(self):
+class PortfolioQuerySet(models.QuerySet['Portfolio']):
+    def active(self) -> typing.Self:
         return self.filter(is_active=True)
 
-    def prefetch_items(self):
+    def prefetch_items(self) -> typing.Self:
         from portfolio.models import PortfolioItem
 
         return self.prefetch_related(
@@ -39,8 +42,8 @@ class Portfolio(CreatedUpdatedAbstractModel, models.Model):
 
     objects = PortfolioQuerySet.as_manager()
 
-    class Meta:
+    class Meta(TypedModelMeta):
         ordering = ('created_at',)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name

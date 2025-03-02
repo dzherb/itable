@@ -1,3 +1,5 @@
+import typing
+
 from django.db import models
 from django.http import Http404
 from django.shortcuts import aget_object_or_404
@@ -7,9 +9,9 @@ from api import exceptions
 
 async def aget_object_or_404_json[T: models.Model](
     source: type[T] | models.Manager[T] | models.QuerySet[T],
-    *args,
+    *args: typing.Any,
     object_error_name: str | None = None,
-    **kwargs,
+    **kwargs: typing.Any,
 ) -> T:
     """
     Similar to Django aget_object_or_404 but returns JsonResponse instead.

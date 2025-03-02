@@ -22,5 +22,5 @@ class PortfolioItem(CreatedUpdatedAbstractModel, models.Model):
         unique_together = (('portfolio', 'security'),)
         ordering = ('created_at',)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.portfolio} - {self.security}'
