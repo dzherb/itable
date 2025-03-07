@@ -1,5 +1,4 @@
 from collections.abc import Callable
-import contextlib
 import traceback
 import typing
 
@@ -18,7 +17,7 @@ class LifespanMiddleware:
         *,
         lifespan: Callable[
             [],
-            contextlib.AbstractAsyncContextManager[typing.Any, None],
+            typing.AsyncContextManager[None],
         ],
     ) -> None:
         self.app = app

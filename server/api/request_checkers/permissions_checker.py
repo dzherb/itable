@@ -1,6 +1,7 @@
 import asyncio
 from collections.abc import Iterable
 from http import HTTPStatus
+import typing
 from typing import override
 
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -19,7 +20,12 @@ class PermissionsChecker(Checker):
         self._permissions = permissions
 
     @override
-    async def check(self, request: HttpRequest, *args, **kwargs) -> bool:
+    async def check(
+        self,
+        request: HttpRequest,
+        *args: typing.Any,
+        **kwargs: typing.Any,
+    ) -> bool:
         tasks = [
             permission.has_permission(request, *args, **kwargs)
             for permission in self._permissions

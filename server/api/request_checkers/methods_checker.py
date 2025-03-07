@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from http import HTTPStatus
+import typing
 from typing import Literal, override
 
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -14,7 +15,12 @@ class MethodsChecker(Checker):
         self._allowed_methods: Sequence[Methods] = methods
 
     @override
-    async def check(self, request: HttpRequest, *args, **kwargs) -> bool:
+    async def check(
+        self,
+        request: HttpRequest,
+        *args: typing.Any,
+        **kwargs: typing.Any,
+    ) -> bool:
         return request.method in self._allowed_methods
 
     @override

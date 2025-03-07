@@ -1,3 +1,4 @@
+import typing
 from typing import override
 
 from django.http import HttpRequest
@@ -15,8 +16,8 @@ class IsPortfolioOwner(Permission):
     async def has_permission(
         self,
         request: HttpRequest,
-        *args,
-        **kwargs,
+        *args: typing.Any,
+        **kwargs: typing.Any,
     ) -> bool:
         # We don't want other users to know
         # about not theirs portfolios.

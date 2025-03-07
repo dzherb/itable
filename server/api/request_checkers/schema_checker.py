@@ -63,7 +63,12 @@ class SchemaChecker[D: 'DataclassInstance'](Checker):
         self._error: str | None = None
 
     @override
-    async def check(self, request: HttpRequest, *args: typing.Any, **kwargs: typing.Any) -> bool:
+    async def check(
+        self,
+        request: HttpRequest,
+        *args: typing.Any,
+        **kwargs: typing.Any,
+    ) -> bool:
         try:
             request_data = self._get_request_data(request)
             populated_schema = dacite.from_dict(
