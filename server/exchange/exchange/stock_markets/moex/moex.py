@@ -47,7 +47,7 @@ moex_circuit_breaker: typing.Final[ResettableCircuitBreaker] = (
     MOEXCircuitBreaker()
 )
 
-DEFAULT_TIMEOUT: typing.Final = aiohttp.ClientTimeout(total=10)
+DEFAULT_TIMEOUT: typing.Final = aiohttp.ClientTimeout(total=5)
 
 
 class BaseMOEX:
@@ -99,7 +99,7 @@ class MOEX(BaseMOEX, StockMarketProtocol):
     ):
         super().__init__(client_factory=client_factory, timeout=timeout)
 
-        self._tickers: Iterable[str]
+        self._tickers: Iterable[str] = ()
         self._result: dict[str, SecurityDict] = {}
 
     @override

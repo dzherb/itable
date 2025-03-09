@@ -7,6 +7,7 @@ import typing
 from django.db import IntegrityError
 from django.http import HttpResponse, JsonResponse
 
+from api.exceptions import NotFoundError
 from api.helpers import aget_object_or_404_json
 from api.helpers.dispatcher import create_dispatcher
 from api.helpers.model_converters import ModelToDictConverter
@@ -78,10 +79,13 @@ async def add_portfolio_security(
 ) -> HttpResponse:
     item_schema: PortfolioSecurityAddSchema = request.populated_schema
 
-    security: Security = await aget_object_or_404_json(
-        Security.objects.only(),
-        ticker=item_schema.ticker,
-    )
+    try:
+        security: Security = await Security.get_or_try_to_create_from_moex(
+            ticker=item_schema.ticker,
+        )
+    except Security.DoesNotExist as e:
+        raise NotFoundError(Security) from e
+
     try:
         portfolio_item: PortfolioItem = await PortfolioItem.objects.acreate(
             portfolio_id=portfolio_id,
@@ -89,7 +93,7 @@ async def add_portfolio_security(
         )
     except IntegrityError:
         logger.warning(
-            'User attempted to add the same portfolio security twice',
+            'Client attempted to add the same portfolio security twice',
             extra={
                 'user_id': request.user.id,
                 'portfolio_id': portfolio_id,

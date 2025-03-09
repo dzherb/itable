@@ -1,12 +1,15 @@
 from http import HTTPStatus
 import json
+from unittest import mock
 
 from django.contrib.auth import get_user_model
 from django.core.serializers.json import DjangoJSONEncoder
 from django.test import AsyncClient, TestCase
 from django.urls import reverse
 
+from exchange.exchange.stock_markets import MOEX
 from exchange.models import Security
+from exchange.tests.test_moex_integration import MockISSClientFactory
 from portfolio.models import Portfolio, PortfolioItem
 from utils.db_helpers import AsyncAtomic
 
@@ -312,11 +315,17 @@ class PortfolioSecurityTestCase(TestCase):
         error = json.loads(response.content)['error']
         self.assertEqual(error, 'portfolio not found')
 
-    async def test_user_cant_add_nonexistent_security(self):
+    @mock.patch('exchange.models.security.MOEX')
+    async def test_user_cant_add_nonexistent_security(self, mock_moex):
+        # Use mock because if there is no such security in db,
+        # we attempt to create it from MOEX
+        mock_moex.return_value = MOEX(client_factory=MockISSClientFactory())
+
         await self.client.aforce_login(self.first_user)
+
         response = await self.client.post(
             self.endpoint_path,
-            data={'ticker': 'NONEXISTNT', 'quantity': 23},
+            data={'ticker': 'TEST', 'quantity': 23},
             content_type='application/json',
         )
         error = json.loads(response.content)['error']
