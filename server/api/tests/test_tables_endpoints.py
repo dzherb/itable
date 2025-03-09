@@ -1,4 +1,3 @@
-import copy
 from http import HTTPStatus
 import json
 
@@ -6,6 +5,7 @@ from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 from django.test import AsyncClient, TestCase
 from django.urls import reverse
+from parameterized import parameterized
 
 from exchange.models import Security
 from investment_tables.models import (
@@ -178,27 +178,28 @@ class TestSnapshotCreationTestCase(SnapshotsFixtureMixin, TestCase):
         )
         self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
 
-    async def test_user_cannot_create_snapshot_with_nonexistent_entities(self):
-        await self.client.aforce_login(self.user)
-
-        cases = (
+    @parameterized.expand(
+        [
             ('portfolio_id', 'portfolio not found'),
             ('template_id', 'table template not found'),
+        ],
+    )
+    async def test_user_cannot_create_snapshot_with_nonexistent_entities(
+        self,
+        field,
+        error_message,
+    ):
+        await self.client.aforce_login(self.user)
+        response = await self.client.post(
+            reverse('api:table_snapshots'),
+            data=self.create_data | {field: 999},  # send incorrect id
+            content_type='application/json',
         )
-        for field, error_message in cases:
-            with self.subTest(field=field):
-                wrong_data = copy.deepcopy(self.create_data)
-                wrong_data[field] = 999
-                response = await self.client.post(
-                    reverse('api:table_snapshots'),
-                    data=wrong_data,
-                    content_type='application/json',
-                )
-                content = json.loads(response.content)
+        content = json.loads(response.content)
 
-                self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
-                self.assertEqual(content['error'], error_message)
-                self.assertEqual(await TableSnapshot.objects.acount(), 2)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        self.assertEqual(content['error'], error_message)
+        self.assertEqual(await TableSnapshot.objects.acount(), 2)
 
     async def test_user_cannot_create_snapshot_with_invalid_data(self):
         await self.client.aforce_login(self.user)

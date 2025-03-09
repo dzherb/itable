@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.test import AsyncRequestFactory, TestCase
+from parameterized import parameterized
 
 from api.helpers import aget_object_or_404_json
 from api.permissions.permission_protocol import Permission
@@ -267,8 +268,8 @@ class APIViewSchemaValidationTestCase(TestCase):
 
         cls.handler = handler
 
-    async def test_api_view_schema_field_validation_failure(self):
-        cases = [
+    @parameterized.expand(
+        [
             (
                 {'username': 'test', 'password': 'strong1Pass', 'age': 0},
                 'age is too small',
@@ -285,52 +286,61 @@ class APIViewSchemaValidationTestCase(TestCase):
                 {'username': 'test', 'password': '1234test5678', 'age': 18},
                 'password contains username',
             ),
-        ]
+        ],
+    )
+    async def test_api_view_schema_field_validation_failure(
+        self,
+        request_data,
+        expected_error,
+    ):
+        request = self.factory.post(
+            path='/handler',
+            data=request_data,
+            content_type='application/json',
+        )
+        response = await self.handler(request)
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(content['error'], expected_error)
 
-        for case in cases:
-            with self.subTest(case=case):
-                request_data, expected_error = case
+    @parameterized.expand(
+        [
+            (
+                {
+                    'username': 'test',
+                    'password': 'strong1Pass',
+                    'age': 18,
+                },
+            ),
+            (
+                # If a field is Optional, and its value is absent (or None)
+                # then we expect to skip its validation
+                {
+                    'username': 'test',
+                    'password': 'strong1Pass',
+                },
+            ),
+            (
+                {
+                    'username': 'test',
+                    'password': 'strong1Pass',
+                    'age': None,
+                },
+            ),
+        ],
+    )
+    async def test_api_view_schema_field_validation_success(
+        self,
+        request_data,
+    ):
+        request = self.factory.post(
+            path='/handler',
+            data=request_data,
+            content_type='application/json',
+        )
+        response = await self.handler(request)
 
-                request = self.factory.post(
-                    path='/handler',
-                    data=request_data,
-                    content_type='application/json',
-                )
-                response = await self.handler(request)
-                content = json.loads(response.content)
-                self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-                self.assertEqual(content['error'], expected_error)
-
-    async def test_api_view_schema_field_validation_success(self):
-        cases = [
-            {
-                'username': 'test',
-                'password': 'strong1Pass',
-                'age': 18,
-            },
-            # If a field is Optional, and its value is absent (or None)
-            # then we expect to skip its validation
-            {
-                'username': 'test',
-                'password': 'strong1Pass',
-            },
-            {
-                'username': 'test',
-                'password': 'strong1Pass',
-                'age': None,
-            },
-        ]
-
-        for request_data in cases:
-            with self.subTest(request_data=request_data):
-                request = self.factory.post(
-                    path='/handler',
-                    data=request_data,
-                    content_type='application/json',
-                )
-                response = await self.handler(request)
-
-                self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
 
 class APIViewAuthenticationTestCase(TestCase):

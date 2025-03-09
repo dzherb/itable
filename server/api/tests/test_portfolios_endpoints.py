@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.serializers.json import DjangoJSONEncoder
 from django.test import AsyncClient, TestCase
 from django.urls import reverse
+from parameterized import parameterized
 
 from exchange.exchange.stock_markets import MOEX
 from exchange.models import Security
@@ -348,34 +349,38 @@ class PortfolioSecurityTestCase(TestCase):
         )
         self.assertEqual(portfolio_item.quantity, 5)
 
-    async def test_user_cant_update_portfolio_security_quantity(self):
-        await self.client.aforce_login(self.first_user)
-        await self._add_security_to_portfolio_and_get_its_url()
-
-        cases = (
+    @parameterized.expand(
+        [
             ('SBER', {'quantity': 0}, HTTPStatus.BAD_REQUEST),
             ('SBER', {'quantity': -2}, HTTPStatus.BAD_REQUEST),
             ('SBER', {'quantity': '1'}, HTTPStatus.BAD_REQUEST),
             ('SBER', {'quantity': None}, HTTPStatus.BAD_REQUEST),
             ('SBER', {}, HTTPStatus.BAD_REQUEST),
             ('T', {'quantity': 4}, HTTPStatus.NOT_FOUND),
-        )
+        ],
+    )
+    async def test_user_cant_update_portfolio_security_quantity(
+        self,
+        ticker,
+        request_data,
+        expected_status,
+    ):
+        await self.client.aforce_login(self.first_user)
+        await self._add_security_to_portfolio_and_get_its_url()
 
-        for ticker, request_data, expected_status in cases:
-            with self.subTest(ticker=ticker, request_data=request_data):
-                url = reverse(
-                    'api:portfolio_security',
-                    kwargs={
-                        'portfolio_id': self.first_user_portfolio.id,
-                        'security_ticker': ticker,
-                    },
-                )
-                response = await self.client.patch(
-                    url,
-                    data=request_data,
-                    content_type='application/json',
-                )
-                self.assertEqual(response.status_code, expected_status)
+        url = reverse(
+            'api:portfolio_security',
+            kwargs={
+                'portfolio_id': self.first_user_portfolio.id,
+                'security_ticker': ticker,
+            },
+        )
+        response = await self.client.patch(
+            url,
+            data=request_data,
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, expected_status)
 
     async def test_user_can_delete_portfolio_security(self):
         await self.client.aforce_login(self.first_user)

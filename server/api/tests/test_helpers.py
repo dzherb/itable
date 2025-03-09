@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
+from parameterized import parameterized
 
 from api.helpers import Dispatcher
 from api.helpers.model_converters import (
@@ -399,21 +400,20 @@ class ModelToDataclassConverterTestCase(TestCase):
 
 
 class StringsHelpersTestCase(TestCase):
-    def test_undo_camel_case(self):
-        cases = (
+    @parameterized.expand(
+        [
             ('CamelCase', 'Camel Case'),
             ('moreComplexExample', 'more Complex Example'),
             ('OldHTMLFile', 'Old HTML File'),
             ('simpleBigURL', 'simple Big URL'),
             ('SQLServer', 'SQL Server'),
+        ],
+    )
+    def test_undo_camel_case(self, input_string, expected_result):
+        self.assertEqual(
+            undo_camel_case(input_string),
+            expected_result,
         )
-
-        with self.subTest(cases=cases):
-            for input_string, expected_result in cases:
-                self.assertEqual(
-                    undo_camel_case(input_string),
-                    expected_result,
-                )
 
 
 class TestSchemaMixins(TestCase):
