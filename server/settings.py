@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 import logging
 import os
+import datetime
 from pathlib import Path
 import sys
 
@@ -119,3 +120,6 @@ if len(sys.argv) > 1 and sys.argv[1] == 'test':
 
 
 RUN_BACKGROUND_TASKS = os.getenv('RUN_BACKGROUND_TASKS', 'y') in TRUE_VALUES
+
+ACCESS_TOKEN_TIME_TO_LIVE = datetime.timedelta(minutes=int(os.getenv('ACCESS_TOKEN_TIME_TO_LIVE_IN_MINUTES')))
+REFRESH_TOKEN_TIME_TO_LIVE = datetime.timedelta(days=int(os.getenv('REFRESH_TOKEN_TIME_TO_LIVE_IN_DAYS')))

@@ -289,6 +289,7 @@ dependencies = [
     { name = "django" },
     { name = "load-dotenv" },
     { name = "psycopg", extra = ["binary"] },
+    { name = "pyjwt" },
     { name = "uvicorn" },
     { name = "uvloop" },
 ]
@@ -312,6 +313,7 @@ requires-dist = [
     { name = "django", specifier = ">=5.1.6" },
     { name = "load-dotenv", specifier = ">=0.1.0" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2.4" },
+    { name = "pyjwt", specifier = ">=2.10.1" },
     { name = "uvicorn", specifier = ">=0.34.0" },
     { name = "uvloop", specifier = ">=0.21.0" },
 ]
@@ -456,6 +458,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/81/a3/29f4993a239d6a3fb18ef8681d9990c007f5f73bdd2e21f65f07ac55ad6f/psycopg_binary-3.2.4-cp313-cp313-musllinux_1_2_ppc64le.whl", hash = "sha256:fa4acea9ca20a567c3872a5afab2084751530bb57b8fb6b52820d5c54e7c8c3b", size = 3399388 },
     { url = "https://files.pythonhosted.org/packages/25/5b/925171cbfa2e3d1ccb7f4c005d0d5db609ba796c1d08a23c42825b09c554/psycopg_binary-3.2.4-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:5c487f35a1905bb15da927c1fc05f70f3d29f0e21fb4ba21d360a0da9c755f20", size = 3436702 },
     { url = "https://files.pythonhosted.org/packages/b6/47/25b2b85b8fcabf99bfa92b4b0d587894c01576bf0b2bf137c243d1eb1070/psycopg_binary-3.2.4-cp313-cp313-win_amd64.whl", hash = "sha256:80297c3a9f7b5a6afdb0d8f220661ccd796e5c9128c44b32c41267f7daefd37f", size = 2779196 },
+]
+
+[[package]]
+name = "pyjwt"
+version = "2.10.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e7/46/bd74733ff231675599650d3e47f361794b22ef3e3770998dda30d3b63726/pyjwt-2.10.1.tar.gz", hash = "sha256:3cc5772eb20009233caf06e9d8a0577824723b44e6648ee0a2aedb6cf9381953", size = 87785 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/61/ad/689f02752eeec26aed679477e80e632ef1b682313be70793d798c1d5fc8f/PyJWT-2.10.1-py3-none-any.whl", hash = "sha256:dcdd193e30abefd5debf142f9adfcdd2b58004e644f25406ffaebd50bd98dacb", size = 22997 },
 ]
 
 [[package]]

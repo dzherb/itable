@@ -12,6 +12,7 @@ dependencies = [
     "django>=5.1.6",
     "load-dotenv>=0.1.0",
     "psycopg[binary]>=3.2.4",
+    "pyjwt>=2.10.1",
     "uvicorn>=0.34.0",
     "uvloop>=0.21.0",
 ]
