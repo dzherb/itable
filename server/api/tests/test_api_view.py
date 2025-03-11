@@ -16,7 +16,7 @@ from api.views.api_view import api_view, Checker
 User = get_user_model()
 
 
-class UsernameLenIs10Permission(Permission):
+class EmailLenIs10Permission(Permission):
     @override
     async def has_permission(
         self,
@@ -24,9 +24,7 @@ class UsernameLenIs10Permission(Permission):
         *args,
         **kwargs,
     ) -> bool:
-        return (
-            request.user.is_authenticated and len(request.user.username) == 10
-        )
+        return request.user.is_authenticated and len(request.user.email) == 10
 
 
 class RequestHasAcceptCharsetHeaderChecker(Checker):
@@ -46,7 +44,7 @@ class APIViewTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.factory = AsyncRequestFactory()
-        cls.user = User.objects.create_user(username='user', password='123')
+        cls.user = User.objects.create_user(email='a@a.com', password='123')
 
     async def test_api_view_can_be_applied_without_arguments(self):
         @api_view
@@ -85,7 +83,7 @@ class APIViewTestCase(TestCase):
         self.assertEqual(content['error'], 'Method not allowed')
 
     async def test_api_view_checks_permissions_and_not_allows(self):
-        @api_view(permissions=[UsernameLenIs10Permission()])
+        @api_view(permissions=[EmailLenIs10Permission()])
         async def hello_world(request):
             return JsonResponse({'message': 'hello world'})
 
@@ -98,7 +96,7 @@ class APIViewTestCase(TestCase):
         self.assertEqual(content['error'], 'Permission denied')
 
     async def test_api_view_checks_permissions_and_allows(self):
-        class UsernameLenIs4Permission(Permission):
+        class EmailLenIs7Permission(Permission):
             @override
             async def has_permission(
                 self,
@@ -108,10 +106,10 @@ class APIViewTestCase(TestCase):
             ) -> bool:
                 return (
                     request.user.is_authenticated
-                    and len(request.user.username) == 4
+                    and len(request.user.email) == 7
                 )
 
-        @api_view(permissions=[UsernameLenIs4Permission()])
+        @api_view(permissions=[EmailLenIs7Permission()])
         async def hello_world(request):
             return JsonResponse({'message': 'hello world'})
 
@@ -354,7 +352,7 @@ class APIViewAuthenticationTestCase(TestCase):
 
         cls.handler = handler
         cls.user = User.objects.create_user(
-            username='test',
+            email='test',
             password='password',
         )
 

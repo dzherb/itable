@@ -13,7 +13,7 @@ logger = logging.getLogger('api')
 
 @dataclasses.dataclass
 class UserCredentialsSchema:
-    username: str
+    email: str
     password: str
 
 
@@ -24,7 +24,7 @@ async def login(
     user_credentials: UserCredentialsSchema = request.populated_schema
     user = await auth.aauthenticate(
         request,
-        username=user_credentials.username,
+        email=user_credentials.email,
         password=user_credentials.password,
     )
 

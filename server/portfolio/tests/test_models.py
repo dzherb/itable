@@ -18,7 +18,7 @@ class PortfolioModelTestCase(TestCase):
 
         cls.user: users.models.ItableUser = (
             get_user_model().objects.create_user(
-                username='testuser',
+                email='testuser',
                 password='password',
             )
         )

@@ -14,7 +14,7 @@ class AuthTestsMixin:
 
     async def _create_user(self):
         return await sync_to_async(User.objects.create_user)(
-            username='test_user',
+            email='test_user',
             password='password',
         )
 
@@ -24,7 +24,7 @@ class LoginCase(AuthTestsMixin, TestCase):
         user = await self._create_user()
         response = await self.client.post(
             reverse('api:login'),
-            data={'username': 'test_user', 'password': 'password'},
+            data={'email': 'test_user', 'password': 'password'},
             content_type='application/json',
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
@@ -34,7 +34,7 @@ class LoginCase(AuthTestsMixin, TestCase):
     async def test_login_with_wrong_credentials(self):
         response = await self.client.post(
             reverse('api:login'),
-            data={'username': 'test_user', 'password': 'password'},
+            data={'email': 'test_user', 'password': 'password'},
             content_type='application/json',
         )
         self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
@@ -42,7 +42,7 @@ class LoginCase(AuthTestsMixin, TestCase):
     async def test_login_with_wrong_schema(self):
         response = await self.client.post(
             reverse('api:login'),
-            data={'email': 'test@test.com', 'password': 'password'},
+            data={'test': 'test', 'password': 'password'},
             content_type='application/json',
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)

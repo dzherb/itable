@@ -15,7 +15,7 @@ class SecurityListTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user(
-            username='testuser',
+            email='testuser',
             password='123456',
         )
 

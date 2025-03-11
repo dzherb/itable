@@ -23,11 +23,11 @@ class SnapshotsFixtureMixin:
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user(
-            username='test_user',
+            email='test_user@test.com',
             password='password',
         )
         cls.another_user = User.objects.create_user(
-            username='another_test_user',
+            email='another_test_user@test.com',
             password='password',
         )
 

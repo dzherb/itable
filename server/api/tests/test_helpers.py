@@ -170,10 +170,10 @@ class ModelToDataclassConverterTestCase(TestCase):
             ticker: str
             quantity: int
             portfolio_name: str
-            owner_username: str
+            owner_email: str
 
         user = await sync_to_async(User.objects.create_user)(
-            username='test_user',
+            email='test_user',
             password='password',
         )
         portfolio = await Portfolio.objects.acreate(
@@ -196,14 +196,14 @@ class ModelToDataclassConverterTestCase(TestCase):
                 'ticker': 'security__ticker',
                 'quantity': 'quantity',
                 'portfolio_name': 'portfolio__name',
-                'owner_username': 'portfolio__owner__username',
+                'owner_email': 'portfolio__owner__email',
             },
         )
         dataclass_instance: Schema = await converter.convert()
         self.assertEqual(dataclass_instance.ticker, 'AAPL')
         self.assertEqual(dataclass_instance.quantity, 5)
         self.assertEqual(dataclass_instance.portfolio_name, 'Test Portfolio')
-        self.assertEqual(dataclass_instance.owner_username, 'test_user')
+        self.assertEqual(dataclass_instance.owner_email, 'test_user')
 
     async def test_model_to_dataclass_handles_optional_fields(self):
         @dataclasses.dataclass
@@ -345,7 +345,7 @@ class ModelToDataclassConverterTestCase(TestCase):
 
     async def test_model_to_dataclass_auto_source(self):
         user = await sync_to_async(User.objects.create_user)(
-            username='test_user',
+            email='test_user',
             password='password',
         )
         await Portfolio.objects.acreate(
@@ -360,7 +360,7 @@ class ModelToDataclassConverterTestCase(TestCase):
         @dataclasses.dataclass
         class UserSchema:
             id: int
-            username: str
+            email: str
 
         @dataclasses.dataclass
         class PortfolioSchema:
@@ -376,7 +376,7 @@ class ModelToDataclassConverterTestCase(TestCase):
                     schema=UserSchema,
                     fields_map={
                         'id': 'owner__id',
-                        'username': 'owner__username',
+                        'email': 'owner__email',
                     },
                 ),
             },
@@ -385,7 +385,7 @@ class ModelToDataclassConverterTestCase(TestCase):
         portfolios = await converter.convert()
         self.assertEqual(len(portfolios), 2)
         self.assertEqual(portfolios[0].name, 'Test Portfolio 1')
-        self.assertEqual(portfolios[0].owner.username, 'test_user')
+        self.assertEqual(portfolios[0].owner.email, 'test_user')
 
     async def test_model_to_dataclass_auto_source_fail(self):
         @dataclasses.dataclass

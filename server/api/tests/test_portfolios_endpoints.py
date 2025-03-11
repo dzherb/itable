@@ -21,11 +21,11 @@ class PortfolioEndpointTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.portfolio_owner = User.objects.create_user(
-            username='owner',
+            email='owner',
             password='password',
         )
         cls.not_portfolio_owner = User.objects.create_user(
-            username='just_user',
+            email='just_user',
             password='password',
         )
         cls.portfolio = Portfolio.objects.create(
@@ -147,11 +147,11 @@ class PortfolioListTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.first_user = User.objects.create_user(
-            username='user1',
+            email='user1',
             password='password',
         )
         cls.second_user = User.objects.create_user(
-            username='user2',
+            email='user2',
             password='password',
         )
 
@@ -231,11 +231,11 @@ class PortfolioSecurityTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.first_user = User.objects.create_user(
-            username='user1',
+            email='user1',
             password='password',
         )
         cls.second_user = User.objects.create_user(
-            username='user2',
+            email='user2',
             password='password',
         )
         cls.first_user_portfolio = Portfolio.objects.create(
