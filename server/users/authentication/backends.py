@@ -40,8 +40,8 @@ class JWTAuthenticationBackend(ModelBackend):
 
         try:
             return User.objects.get(pk=payload['user_id'])
-        except User.DoesNotExist:
-            raise PermissionDenied from None
+        except User.DoesNotExist as e:
+            raise PermissionDenied from e
 
     def _has_auth_header(self, request: HttpRequest) -> bool:
         return request.headers.get('Authorization') is not None
@@ -58,7 +58,7 @@ class JWTAuthenticationBackend(ModelBackend):
             raise PermissionDenied from e
 
         if auth_prefix != self.AUTH_HEADER_PREFIX:
-            raise PermissionDenied from None
+            raise PermissionDenied
 
         return self.check_token(access_token)
 
@@ -67,11 +67,11 @@ class JWTAuthenticationBackend(ModelBackend):
             payload: TokenPayload = self.JWT_FACTORY().decode_token(
                 access_token,
             )
-        except exceptions.InvalidTokenError:
-            raise PermissionDenied from None
+        except exceptions.InvalidTokenError as e:
+            raise PermissionDenied from e
 
         if not self.JWT_PAYLOAD_VALIDATOR().is_valid(payload):
-            raise PermissionDenied from None
+            raise PermissionDenied
 
         return payload
 

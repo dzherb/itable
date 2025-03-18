@@ -434,7 +434,7 @@ class APIViewAuthenticationTestCase(TestCase):
     async def test_authenticated_user_has_access(self):
         request = self.factory.get(path='/handler')
 
-        # in real cases it is set at JWTAuthenticationMiddleware level
+        # in real cases user_id is set at JWTAuthenticationMiddleware level
         request.user_id = 123
 
         response = await self.handler(request)
