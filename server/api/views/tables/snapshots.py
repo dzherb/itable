@@ -42,7 +42,7 @@ class TableSnapshotSchema:
 async def table_snapshot_list(request: AuthenticatedRequest) -> HttpResponse:
     user_snapshots: models.QuerySet[TableSnapshot] = (
         TableSnapshot.objects.select_related('template')
-        .owned_by(request.user)
+        .owned_by(request.user_id)
         .active()
     )
 
@@ -80,7 +80,7 @@ async def create_table_snapshot(
 ) -> HttpResponse:
     table_snapshot_schema: TableSnapshotCreateSchema = request.populated_schema
     portfolio = await aget_object_or_404_json(
-        Portfolio.objects.filter(owner=request.user),
+        Portfolio.objects.filter(owner=request.user_id),
         pk=table_snapshot_schema.portfolio_id,
     )
     template = await aget_object_or_404_json(

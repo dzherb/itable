@@ -1,16 +1,17 @@
+import asyncio
 import dataclasses
 from http import HTTPStatus
 import json
 from typing import override
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.test import AsyncRequestFactory, TestCase
-from parameterized import parameterized
+from parameterized import param, parameterized
 
 from api.helpers import aget_object_or_404_json
 from api.permissions.permission_protocol import Permission
+from api.request_checkers.schema_checker import SchemaValidationError
 from api.views.api_view import api_view, Checker
 
 User = get_user_model()
@@ -180,45 +181,43 @@ class APIViewSchemaTestCase(TestCase):
 
         cls.echo_handler = echo
 
-    async def test_request_body_populates_the_schema(self):
-        valid_request_data = [
-            {'username': 'test_user', 'password': 'password'},
-            {'username': 'test_user', 'password': 'password', 'age': 20},
-        ]
+    @parameterized.expand(
+        [
+            ({'username': 'test_user', 'password': 'password'},),
+            ({'username': 'test_user', 'password': 'password', 'age': 20},),
+        ],
+    )
+    async def test_request_body_populates_the_schema(self, request_data):
+        request = self.factory.post(
+            path='/echo',
+            data=request_data,
+            content_type='application/json',
+        )
+        response = await self.echo_handler(request)
+        content = json.loads(response.content)
 
-        for request_data in valid_request_data:
-            with self.subTest(request_data=request_data):
-                request = self.factory.post(
-                    path='/echo',
-                    data=request_data,
-                    content_type='application/json',
-                )
-                response = await self.echo_handler(request)
-                content = json.loads(response.content)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        for key, value in request_data.items():
+            self.assertEqual(content[key], value)
 
-                self.assertEqual(response.status_code, HTTPStatus.OK)
-                for key, value in request_data.items():
-                    self.assertEqual(content[key], value)
+    @parameterized.expand(
+        [
+            ({'username': 'test_user'},),
+            ({'username': 'test_user', 'password': 123456},),
+            ({'username1': 'test_user', 'password': '123456'},),
+        ],
+    )
+    async def test_api_view_returns_error_on_invalid_data(self, request_data):
+        request = self.factory.post(
+            path='/echo',
+            data=request_data,
+            content_type='application/json',
+        )
+        response = await self.echo_handler(request)
+        content = json.loads(response.content)
 
-    async def test_api_view_returns_error_on_invalid_data(self):
-        wrong_request_data = [
-            {'username': 'test_user'},
-            {'username': 'test_user', 'password': 123456},
-            {'username1': 'test_user', 'password': '123456'},
-        ]
-
-        for request_data in wrong_request_data:
-            with self.subTest(request_data=request_data):
-                request = self.factory.post(
-                    path='/echo',
-                    data=request_data,
-                    content_type='application/json',
-                )
-                response = await self.echo_handler(request)
-                content = json.loads(response.content)
-
-                self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-                self.assertIn('error', content)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertIn('error', content)
 
     async def test_api_view_handles_invalid_json(self):
         request = self.factory.generic(
@@ -239,7 +238,7 @@ class UserSchemaWithValidators:
     password: str
     age: int | None
 
-    def validate(self):
+    def validate(self, request: HttpRequest):
         if self.username.lower() in self.password.lower():
             raise ValueError('password contains username')
 
@@ -255,6 +254,28 @@ class UserSchemaWithValidators:
             raise ValueError('password should include letters')
 
 
+@dataclasses.dataclass
+class UserSchemaWithMoreComplexValidators:
+    username: str
+    password: str
+
+    async def validate(self, request: HttpRequest):
+        if request.path != '/test_path/':
+            raise ValueError('path is not "/test_path/"')
+
+    async def validate_username(self):
+        await asyncio.sleep(0)
+        if len(self.username) < 3:
+            raise ValueError('username is too short')
+
+    def validate_password(self):
+        if self.password != 'strong':
+            raise SchemaValidationError(
+                message='password is invalid',
+                response_status=HTTPStatus.UNAUTHORIZED,
+            )
+
+
 class APIViewSchemaValidationTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -264,7 +285,15 @@ class APIViewSchemaValidationTestCase(TestCase):
         async def handler(request):
             return JsonResponse({}, status=HTTPStatus.OK)
 
+        @api_view(
+            methods=['POST'],
+            request_schema=UserSchemaWithMoreComplexValidators,
+        )
+        async def handler_with_complex_schema(request):
+            return JsonResponse({}, status=HTTPStatus.OK)
+
         cls.handler = handler
+        cls.handler_with_complex_schema = handler_with_complex_schema
 
     @parameterized.expand(
         [
@@ -340,6 +369,52 @@ class APIViewSchemaValidationTestCase(TestCase):
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
+    async def test_api_view_schema_complex_validation_success(self):
+        request = self.factory.post(
+            path='/test_path/',
+            data={'username': 'test', 'password': 'strong'},
+            content_type='application/json',
+        )
+        response = await self.handler_with_complex_schema(request)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    @parameterized.expand(
+        [
+            (
+                {'username': 'test', 'password': 'strong'},
+                '/wrong_path/',
+                'path is not "/test_path/"',
+            ),
+            (
+                {'username': 'te', 'password': 'strong'},
+                '/test_path/',
+                'username is too short',
+            ),
+            param(
+                {'username': 'test', 'password': 'not_strong'},
+                '/test_path/',
+                'password is invalid',
+                status_code=HTTPStatus.UNAUTHORIZED,
+            ),
+        ],
+    )
+    async def test_api_view_schema_validation_failure(
+        self,
+        request_data,
+        path,
+        error_description,
+        status_code=HTTPStatus.BAD_REQUEST,
+    ):
+        request = self.factory.post(
+            path=path,
+            data=request_data,
+            content_type='application/json',
+        )
+        response = await self.handler_with_complex_schema(request)
+        self.assertEqual(response.status_code, status_code)
+        content = json.loads(response.content)
+        self.assertEqual(content['error'], error_description)
+
 
 class APIViewAuthenticationTestCase(TestCase):
     @classmethod
@@ -356,22 +431,17 @@ class APIViewAuthenticationTestCase(TestCase):
             password='password',
         )
 
-    def _attach_user_to_mocked_request(self, request, user):
-        async def auser():
-            return user
-
-        request.auser = auser
-
     async def test_authenticated_user_has_access(self):
         request = self.factory.get(path='/handler')
-        self._attach_user_to_mocked_request(request, self.user)
+
+        # in real cases it is set at JWTAuthenticationMiddleware level
+        request.user_id = 123
 
         response = await self.handler(request)
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     async def test_anonymous_user_has_no_access(self):
         request = self.factory.get(path='/handler')
-        self._attach_user_to_mocked_request(request, AnonymousUser())
 
         response = await self.handler(request)
         error = json.loads(response.content)['error']

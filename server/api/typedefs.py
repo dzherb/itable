@@ -1,9 +1,9 @@
-from collections.abc import Coroutine
+from collections.abc import Awaitable, Callable, Coroutine
 import typing
 
 from django.http import HttpRequest, HttpResponse
 
-import users.models
+from users.models import ItableUser
 
 if typing.TYPE_CHECKING:
     from _typeshed import DataclassInstance
@@ -28,7 +28,8 @@ class ApiViewFunction[T: HttpRequest](typing.Protocol):
 
 
 class AuthenticatedRequest(HttpRequest):
-    user: users.models.ItableUser
+    user_id: int
+    auser: Callable[[], Awaitable[ItableUser]]
 
 
 class PopulatedSchemaRequest[T: 'DataclassInstance'](HttpRequest):

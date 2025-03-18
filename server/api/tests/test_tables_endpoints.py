@@ -7,6 +7,7 @@ from django.test import AsyncClient, TestCase
 from django.urls import reverse
 from parameterized import parameterized
 
+from api.tests.helpers import generate_auth_header
 from exchange.models import Security
 from investment_tables.models import (
     TableSnapshot,
@@ -20,6 +21,10 @@ User = get_user_model()
 
 
 class SnapshotsFixtureMixin:
+    def setUp(self):
+        self.client = AsyncClient()
+        self.credentials = generate_auth_header(self.user)
+
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user(
@@ -79,12 +84,11 @@ class SnapshotsFixtureMixin:
 
 
 class TableSnapshotListTestCase(SnapshotsFixtureMixin, TestCase):
-    def setUp(self):
-        self.client = AsyncClient()
-
     async def test_user_can_get_table_snapshot_list(self):
-        await self.client.aforce_login(self.user)
-        response = await self.client.get(reverse('api:table_snapshots'))
+        response = await self.client.get(
+            reverse('api:table_snapshots'),
+            headers=self.credentials,
+        )
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
@@ -106,8 +110,10 @@ class TableSnapshotListTestCase(SnapshotsFixtureMixin, TestCase):
             portfolio=self.another_user_portfolio,
             name='another user snapshot',
         )
-        await self.client.aforce_login(self.user)
-        response = await self.client.get(reverse('api:table_snapshots'))
+        response = await self.client.get(
+            reverse('api:table_snapshots'),
+            headers=self.credentials,
+        )
         self.assertEqual(response.status_code, HTTPStatus.OK)
         snapshots = json.loads(response.content)['snapshots']
 
@@ -124,8 +130,10 @@ class TableSnapshotListTestCase(SnapshotsFixtureMixin, TestCase):
         self.first_snapshot.is_active = False
         await self.first_snapshot.asave(update_fields=['is_active'])
 
-        await self.client.aforce_login(self.user)
-        response = await self.client.get(reverse('api:table_snapshots'))
+        response = await self.client.get(
+            reverse('api:table_snapshots'),
+            headers=self.credentials,
+        )
         self.assertEqual(response.status_code, HTTPStatus.OK)
         snapshots = json.loads(response.content)['snapshots']
         self.assertEqual(len(snapshots), 1)
@@ -134,7 +142,8 @@ class TableSnapshotListTestCase(SnapshotsFixtureMixin, TestCase):
 
 class TestSnapshotCreationTestCase(SnapshotsFixtureMixin, TestCase):
     def setUp(self):
-        self.client = AsyncClient()
+        super().setUp()
+
         self.create_data = {
             'name': 'my third snapshot',
             'portfolio_id': self.portfolio.id,
@@ -142,11 +151,11 @@ class TestSnapshotCreationTestCase(SnapshotsFixtureMixin, TestCase):
         }
 
     async def test_user_can_create_snapshot(self):
-        await self.client.aforce_login(self.user)
         response = await self.client.post(
             reverse('api:table_snapshots'),
             data=self.create_data,
             content_type='application/json',
+            headers=self.credentials,
         )
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
@@ -156,12 +165,12 @@ class TestSnapshotCreationTestCase(SnapshotsFixtureMixin, TestCase):
         self.assertEqual(snapshot['name'], 'my third snapshot')
 
     async def test_user_can_create_snapshot_without_name(self):
-        await self.client.aforce_login(self.user)
         del self.create_data['name']
         response = await self.client.post(
             reverse('api:table_snapshots'),
             self.create_data,
             content_type='application/json',
+            headers=self.credentials,
         )
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
@@ -189,11 +198,11 @@ class TestSnapshotCreationTestCase(SnapshotsFixtureMixin, TestCase):
         field,
         error_message,
     ):
-        await self.client.aforce_login(self.user)
         response = await self.client.post(
             reverse('api:table_snapshots'),
             data=self.create_data | {field: 999},  # send incorrect id
             content_type='application/json',
+            headers=self.credentials,
         )
         content = json.loads(response.content)
 
@@ -202,8 +211,6 @@ class TestSnapshotCreationTestCase(SnapshotsFixtureMixin, TestCase):
         self.assertEqual(await TableSnapshot.objects.acount(), 2)
 
     async def test_user_cannot_create_snapshot_with_invalid_data(self):
-        await self.client.aforce_login(self.user)
-
         cases = (
             {
                 'name': 1,
@@ -240,6 +247,7 @@ class TestSnapshotCreationTestCase(SnapshotsFixtureMixin, TestCase):
                         reverse('api:table_snapshots'),
                         data=case,
                         content_type='application/json',
+                        headers=self.credentials,
                     )
                     self.assertEqual(
                         response.status_code,

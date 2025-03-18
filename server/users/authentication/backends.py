@@ -1,5 +1,6 @@
 import typing
 
+from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import PermissionDenied
@@ -30,12 +31,26 @@ class JWTAuthenticationBackend(ModelBackend):
         password: str | None = None,
         **kwargs: typing.Any,
     ) -> ItableUser | None:
-        if request is None:
+        if request is not None and self._has_auth_header(request):
+            payload = self.authenticate_from_header(request)
+        elif access_token := kwargs.get('access_token'):
+            payload = self.check_token(access_token)
+        else:
             return None
 
-        auth_header = request.headers.get('Authorization')
-        if not auth_header:
-            return None
+        try:
+            return User.objects.get(pk=payload['user_id'])
+        except User.DoesNotExist:
+            raise PermissionDenied from None
+
+    def _has_auth_header(self, request: HttpRequest) -> bool:
+        return request.headers.get('Authorization') is not None
+
+    def authenticate_from_header(self, request: HttpRequest) -> TokenPayload:
+        try:
+            auth_header = request.headers['Authorization']
+        except KeyError as e:
+            raise PermissionDenied from e
 
         try:
             auth_prefix, access_token = auth_header.split(' ')
@@ -45,6 +60,9 @@ class JWTAuthenticationBackend(ModelBackend):
         if auth_prefix != self.AUTH_HEADER_PREFIX:
             raise PermissionDenied from None
 
+        return self.check_token(access_token)
+
+    def check_token(self, access_token: str) -> TokenPayload:
         try:
             payload: TokenPayload = self.JWT_FACTORY().decode_token(
                 access_token,
@@ -55,7 +73,7 @@ class JWTAuthenticationBackend(ModelBackend):
         if not self.JWT_PAYLOAD_VALIDATOR().is_valid(payload):
             raise PermissionDenied from None
 
-        try:
-            return User.objects.get(pk=payload['user_id'])
-        except User.DoesNotExist:
-            raise PermissionDenied from None
+        return payload
+
+    async def aget_user(self, user_id: int) -> ItableUser | None:
+        return await sync_to_async(self.get_user)(user_id)

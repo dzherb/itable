@@ -96,7 +96,7 @@ async def create_portfolio(
 ) -> HttpResponse:
     portfolio: Portfolio = await Portfolio.objects.acreate(
         name=request.populated_schema.name,
-        owner=request.user,
+        owner_id=request.user_id,
     )
     return JsonResponse(await _serialize_portfolio(portfolio))
 
@@ -158,7 +158,7 @@ class PortfolioListItemSchema:
 async def portfolio_list(request: AuthenticatedRequest) -> HttpResponse:
     select_fields = tuple(PortfolioListItemSchema.__dataclass_fields__.keys())
     user_portfolios = Portfolio.objects.filter(
-        owner_id=request.user.id,
+        owner_id=request.user_id,
     ).only(*select_fields)
 
     converter = ModelToDictConverter(

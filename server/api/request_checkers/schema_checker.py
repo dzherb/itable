@@ -1,5 +1,6 @@
 from dataclasses import is_dataclass
 from http import HTTPStatus
+import inspect
 import json
 import typing
 from typing import override
@@ -18,6 +19,16 @@ class PopulatedSchemaRequest[T: 'DataclassInstance'](HttpRequest):
     populated_schema: T
 
 
+class SchemaValidationError(ValueError):
+    def __init__(
+        self,
+        message: str,
+        response_status: int = HTTPStatus.BAD_REQUEST,
+    ) -> None:
+        self.message = message
+        self.response_status = response_status
+
+
 class _SchemaValidationRunner:
     """
     Runs schema "validate" methods if it has them.
@@ -27,18 +38,41 @@ class _SchemaValidationRunner:
     def __init__(self, populated_schema: 'DataclassInstance'):
         self._populated_schema = populated_schema
 
-    def run_validations(self) -> None:
+    async def run_validations(
+        self,
+        request: HttpRequest,
+        *args: typing.Any,
+        **kwargs: typing.Any,
+    ) -> None:
         for field in self._populated_schema.__dataclass_fields__.keys():
             if self._should_validate(field):
-                self._validate_field(field)
+                await self._validate_field(field)
 
-        if hasattr(self._populated_schema, 'validate'):
-            self._populated_schema.validate()
+        if not hasattr(self._populated_schema, 'validate'):
+            return
 
-    def _validate_field(self, field: str) -> typing.Any:
+        if inspect.iscoroutinefunction(self._populated_schema.validate):
+            await self._populated_schema.validate(
+                request,
+                *args,
+                **kwargs,
+            )
+            return
+
+        self._populated_schema.validate(
+            request,
+            *args,
+            **kwargs,
+        )
+
+    async def _validate_field(self, field: str) -> typing.Any:
         validation_method_name = 'validate_' + field
         if hasattr(self._populated_schema, validation_method_name):
-            return getattr(self._populated_schema, validation_method_name)()
+            method = getattr(self._populated_schema, validation_method_name)
+            if inspect.iscoroutinefunction(method):
+                return await method()
+
+            return method()
 
         value: typing.Any = getattr(self._populated_schema, field)
         return value
@@ -61,6 +95,7 @@ class SchemaChecker[D: 'DataclassInstance'](Checker):
 
         self._request_schema = request_schema
         self._error: str | None = None
+        self._response_status: int = HTTPStatus.BAD_REQUEST
 
     @override
     async def check(
@@ -75,7 +110,9 @@ class SchemaChecker[D: 'DataclassInstance'](Checker):
                 data_class=self._request_schema,
                 data=request_data,
             )
-            _SchemaValidationRunner(populated_schema).run_validations()
+            await _SchemaValidationRunner(
+                populated_schema=populated_schema,
+            ).run_validations(request, *args, **kwargs)
 
             request = typing.cast(PopulatedSchemaRequest[D], request)
             request.populated_schema = populated_schema
@@ -85,6 +122,10 @@ class SchemaChecker[D: 'DataclassInstance'](Checker):
             return False
         except dacite.MissingValueError as e:
             self._error = str(e)
+            return False
+        except SchemaValidationError as e:
+            self._error = e.message
+            self._response_status = e.response_status
             return False
         except ValueError as e:
             self._error = str(e)
@@ -106,5 +147,5 @@ class SchemaChecker[D: 'DataclassInstance'](Checker):
     def on_failure_response(self) -> HttpResponse:
         return JsonResponse(
             data={'error': self._error},
-            status=HTTPStatus.BAD_REQUEST,
+            status=self._response_status,
         )

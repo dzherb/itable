@@ -17,7 +17,7 @@ class TableSnapshotQuerySet(models.QuerySet['TableSnapshot']):
     def active(self) -> typing.Self:
         return self.filter(is_active=True)
 
-    def owned_by(self, user: AbstractUser) -> typing.Self:
+    def owned_by(self, user: AbstractUser | int) -> typing.Self:
         return self.filter(portfolio__owner=user)
 
 

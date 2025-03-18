@@ -8,6 +8,7 @@ from django.test import AsyncClient, TestCase
 from django.urls import reverse
 from parameterized import parameterized
 
+from api.tests.helpers import generate_auth_header
 from exchange.exchange.stock_markets import MOEX
 from exchange.models import Security
 from exchange.tests.test_moex_integration import MockISSClientFactory
@@ -51,10 +52,16 @@ class PortfolioEndpointTestCase(TestCase):
 
     def setUp(self):
         self.client = AsyncClient()
+        self.owner_credentials = generate_auth_header(self.portfolio_owner)
+        self.not_owner_credentials = generate_auth_header(
+            self.not_portfolio_owner,
+        )
 
     async def test_portfolio_owner_can_get_portfolio(self):
-        await self.client.aforce_login(self.portfolio_owner)
-        response = await self.client.get(self.endpoint_path)
+        response = await self.client.get(
+            self.endpoint_path,
+            headers=self.owner_credentials,
+        )
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
@@ -74,8 +81,10 @@ class PortfolioEndpointTestCase(TestCase):
         self.assertJSONEqual(response.content.decode(), expected)
 
     async def test_other_user_cant_get_portfolio(self):
-        await self.client.aforce_login(self.not_portfolio_owner)
-        response = await self.client.get(self.endpoint_path)
+        response = await self.client.get(
+            self.endpoint_path,
+            headers=self.not_owner_credentials,
+        )
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     async def test_anonymous_user_cant_get_portfolio(self):
@@ -83,16 +92,23 @@ class PortfolioEndpointTestCase(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
 
     async def test_portfolio_owner_can_delete_portfolio(self):
-        await self.client.aforce_login(self.portfolio_owner)
-        response = await self.client.delete(self.endpoint_path)
+        response = await self.client.delete(
+            self.endpoint_path,
+            headers=self.owner_credentials,
+        )
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
-        response = await self.client.get(self.endpoint_path)
+        response = await self.client.get(
+            self.endpoint_path,
+            headers=self.owner_credentials,
+        )
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     async def test_other_user_cant_delete_portfolio(self):
-        await self.client.aforce_login(self.not_portfolio_owner)
-        response = await self.client.delete(self.endpoint_path)
+        response = await self.client.delete(
+            self.endpoint_path,
+            headers=self.not_owner_credentials,
+        )
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     async def test_anonymous_user_cant_delete_portfolio(self):
@@ -100,27 +116,30 @@ class PortfolioEndpointTestCase(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
 
     async def test_portfolio_owner_can_update_portfolio(self):
-        await self.client.aforce_login(self.portfolio_owner)
         response = await self.client.patch(
             self.endpoint_path,
             data={'name': 'new name'},
             content_type='application/json',
+            headers=self.owner_credentials,
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
         portfolio = json.loads(response.content)
         self.assertEqual(portfolio['name'], 'new name')
 
-        response = await self.client.get(self.endpoint_path)
+        response = await self.client.get(
+            self.endpoint_path,
+            headers=self.owner_credentials,
+        )
         self.assertEqual(response.status_code, HTTPStatus.OK)
         portfolio = json.loads(response.content)
         self.assertEqual(portfolio['name'], 'new name')
 
     async def test_other_user_cant_update_portfolio(self):
-        await self.client.aforce_login(self.not_portfolio_owner)
         response = await self.client.patch(
             self.endpoint_path,
             data={'name': 'new name'},
             content_type='application/json',
+            headers=self.not_owner_credentials,
         )
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
@@ -133,12 +152,15 @@ class PortfolioEndpointTestCase(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
 
     async def test_cant_update_deleted_portfolio(self):
-        await self.client.aforce_login(self.portfolio_owner)
-        await self.client.delete(self.endpoint_path)
+        await self.client.delete(
+            self.endpoint_path,
+            headers=self.owner_credentials,
+        )
         response = await self.client.patch(
             self.endpoint_path,
             data={'name': 'new name'},
             content_type='application/json',
+            headers=self.owner_credentials,
         )
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
@@ -173,10 +195,13 @@ class PortfolioListTestCase(TestCase):
 
     def setUp(self):
         self.client = AsyncClient()
+        self.first_user_credentials = generate_auth_header(self.first_user)
 
     async def test_user_can_get_only_own_portfolios(self):
-        await self.client.aforce_login(self.first_user)
-        response = await self.client.get(self.endpoint_path)
+        response = await self.client.get(
+            self.endpoint_path,
+            headers=self.first_user_credentials,
+        )
         self.assertEqual(response.status_code, HTTPStatus.OK)
         portfolios = json.loads(response.content)['portfolios']
 
@@ -193,11 +218,11 @@ class PortfolioListTestCase(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
 
     async def test_user_can_create_portfolio(self):
-        await self.client.aforce_login(self.first_user)
         response = await self.client.post(
             self.endpoint_path,
             data={'name': 'my super portfolio'},
             content_type='application/json',
+            headers=self.first_user_credentials,
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
         portfolio = json.loads(response.content)
@@ -216,11 +241,11 @@ class PortfolioListTestCase(TestCase):
         self.assertEqual(await Portfolio.objects.acount(), 3)
 
     async def test_user_cant_create_portfolio_with_empty_name(self):
-        await self.client.aforce_login(self.first_user)
         response = await self.client.post(
             self.endpoint_path,
             data={'name': ''},
             content_type='application/json',
+            headers=self.first_user_credentials,
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         error = json.loads(response.content)['error']
@@ -252,13 +277,15 @@ class PortfolioSecurityTestCase(TestCase):
 
     def setUp(self):
         self.client = AsyncClient()
+        self.first_user_credentials = generate_auth_header(self.first_user)
+        self.second_user_credentials = generate_auth_header(self.second_user)
 
     async def test_user_can_add_security_to_portfolio(self):
-        await self.client.aforce_login(self.first_user)
         response = await self.client.post(
             self.endpoint_path,
             data={'ticker': 'SBER', 'quantity': 1},
             content_type='application/json',
+            headers=self.first_user_credentials,
         )
         portfolio_security = json.loads(response.content)
         portfolio_item: PortfolioItem = (
@@ -278,11 +305,11 @@ class PortfolioSecurityTestCase(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
 
     async def test_user_cant_add_same_security_twice(self):
-        await self.client.aforce_login(self.first_user)
         response = await self.client.post(
             self.endpoint_path,
             data={'ticker': 'SBER', 'quantity': 1},
             content_type='application/json',
+            headers=self.first_user_credentials,
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
@@ -291,6 +318,7 @@ class PortfolioSecurityTestCase(TestCase):
                 self.endpoint_path,
                 data={'ticker': 'SBER', 'quantity': 5},
                 content_type='application/json',
+                headers=self.first_user_credentials,
             )
 
         error = json.loads(response.content)['error']
@@ -303,7 +331,6 @@ class PortfolioSecurityTestCase(TestCase):
         )
 
     async def test_user_cant_add_security_to_deleted_portfolio(self):
-        await self.client.aforce_login(self.first_user)
         self.first_user_portfolio.is_active = False
         await self.first_user_portfolio.asave(update_fields=['is_active'])
 
@@ -311,6 +338,7 @@ class PortfolioSecurityTestCase(TestCase):
             self.endpoint_path,
             data={'ticker': 'SBER', 'quantity': 1},
             content_type='application/json',
+            headers=self.first_user_credentials,
         )
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
         error = json.loads(response.content)['error']
@@ -322,12 +350,11 @@ class PortfolioSecurityTestCase(TestCase):
         # we attempt to create it from MOEX
         mock_moex.return_value = MOEX(client_factory=MockISSClientFactory())
 
-        await self.client.aforce_login(self.first_user)
-
         response = await self.client.post(
             self.endpoint_path,
             data={'ticker': 'TEST', 'quantity': 23},
             content_type='application/json',
+            headers=self.first_user_credentials,
         )
         error = json.loads(response.content)['error']
 
@@ -336,12 +363,14 @@ class PortfolioSecurityTestCase(TestCase):
         self.assertFalse(await self.first_user_portfolio.securities.aexists())
 
     async def test_user_can_update_portfolio_security_quantity(self):
-        await self.client.aforce_login(self.first_user)
-        url = await self._add_security_to_portfolio_and_get_its_url()
+        url = (
+            await self._add_security_to_first_user_portfolio_and_get_its_url()
+        )
         response = await self.client.patch(
             url,
             {'ticker': 'SBER', 'quantity': 5},
             content_type='application/json',
+            headers=self.first_user_credentials,
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
         portfolio_item: PortfolioItem = (
@@ -365,8 +394,7 @@ class PortfolioSecurityTestCase(TestCase):
         request_data,
         expected_status,
     ):
-        await self.client.aforce_login(self.first_user)
-        await self._add_security_to_portfolio_and_get_its_url()
+        await self._add_security_to_first_user_portfolio_and_get_its_url()
 
         url = reverse(
             'api:portfolio_security',
@@ -379,18 +407,23 @@ class PortfolioSecurityTestCase(TestCase):
             url,
             data=request_data,
             content_type='application/json',
+            headers=self.first_user_credentials,
         )
         self.assertEqual(response.status_code, expected_status)
 
     async def test_user_can_delete_portfolio_security(self):
-        await self.client.aforce_login(self.first_user)
-        url = await self._add_security_to_portfolio_and_get_its_url()
+        url = (
+            await self._add_security_to_first_user_portfolio_and_get_its_url()
+        )
         self.assertEqual(
             await self.first_user_portfolio.securities.acount(),
             1,
         )
 
-        response = await self.client.delete(url)
+        response = await self.client.delete(
+            url,
+            headers=self.first_user_credentials,
+        )
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(
             await self.first_user_portfolio.securities.acount(),
@@ -398,17 +431,24 @@ class PortfolioSecurityTestCase(TestCase):
         )
 
     async def test_user_cant_delete_same_portfolio_security_twice(self):
-        await self.client.aforce_login(self.first_user)
-        url = await self._add_security_to_portfolio_and_get_its_url()
+        url = (
+            await self._add_security_to_first_user_portfolio_and_get_its_url()
+        )
 
-        response = await self.client.delete(url)
+        response = await self.client.delete(
+            url,
+            headers=self.first_user_credentials,
+        )
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(
             await self.first_user_portfolio.securities.acount(),
             0,
         )
 
-        response = await self.client.delete(url)
+        response = await self.client.delete(
+            url,
+            headers=self.first_user_credentials,
+        )
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
         error = json.loads(response.content)['error']
         self.assertEqual(error, 'portfolio security not found')
@@ -418,21 +458,28 @@ class PortfolioSecurityTestCase(TestCase):
         )
 
     async def test_user_cant_delete_deleted_portfolio_security(self):
-        await self.client.aforce_login(self.first_user)
-        url = await self._add_security_to_portfolio_and_get_its_url()
+        url = (
+            await self._add_security_to_first_user_portfolio_and_get_its_url()
+        )
         self.first_user_portfolio.is_active = False
         await self.first_user_portfolio.asave(update_fields=['is_active'])
-        response = await self.client.delete(url)
+        response = await self.client.delete(
+            url,
+            headers=self.first_user_credentials,
+        )
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
         error = json.loads(response.content)['error']
         self.assertEqual(error, 'portfolio not found')
 
     async def test_user_cant_delete_not_theirs_portfolio_security(self):
-        await self.client.aforce_login(self.first_user)
-        url = await self._add_security_to_portfolio_and_get_its_url()
+        url = (
+            await self._add_security_to_first_user_portfolio_and_get_its_url()
+        )
 
-        await self.client.aforce_login(self.second_user)
-        response = await self.client.delete(url)
+        response = await self.client.delete(
+            url,
+            headers=self.second_user_credentials,
+        )
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
         self.assertEqual(
             await self.first_user_portfolio.securities.acount(),
@@ -442,9 +489,9 @@ class PortfolioSecurityTestCase(TestCase):
         self.assertEqual(error, 'portfolio not found')
 
     async def test_anonymous_user_cant_delete_portfolio_security(self):
-        await self.client.aforce_login(self.first_user)
-        url = await self._add_security_to_portfolio_and_get_its_url()
-        await self.client.alogout()
+        url = (
+            await self._add_security_to_first_user_portfolio_and_get_its_url()
+        )
         response = await self.client.delete(url)
         self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
         self.assertEqual(
@@ -452,11 +499,14 @@ class PortfolioSecurityTestCase(TestCase):
             1,
         )
 
-    async def _add_security_to_portfolio_and_get_its_url(self) -> str:
+    async def _add_security_to_first_user_portfolio_and_get_its_url(
+        self,
+    ) -> str:
         await self.client.post(
             self.endpoint_path,
             data={'ticker': 'SBER', 'quantity': 13},
             content_type='application/json',
+            headers=self.first_user_credentials,
         )
 
         return reverse(

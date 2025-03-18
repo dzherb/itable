@@ -4,8 +4,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 
-from users.authentication.exceptions import InvalidTokenError
-from users.authentication.jwt import TokenPair, PyJWT, JWT
+from users.authentication.jwt import JWT, PyJWT, TokenPair
 
 
 class ItableUserManager(UserManager['ItableUser']):
@@ -67,13 +66,8 @@ class ItableUser(AbstractUser):
 
     JWT_FABRIC: type[JWT] = PyJWT
 
-    async def refresh_tokens(self, refresh_token: str) -> TokenPair:
-        if self.refresh_token != refresh_token:
-            raise InvalidTokenError
-
-        token_pair = self.JWT_FABRIC().generate_tokens(self.pk)
-        await self._set_refresh_token(token_pair.refresh_token)
-        return token_pair
+    def can_refresh_tokens(self, refresh_token: str) -> bool:
+        return self.refresh_token == refresh_token
 
     async def generate_new_tokens(self) -> TokenPair:
         token_pair = self.JWT_FABRIC().generate_tokens(self.pk)

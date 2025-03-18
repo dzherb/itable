@@ -15,9 +15,7 @@ class AuthenticationChecker(Checker):
         *args: typing.Any,
         **kwargs: typing.Any,
     ) -> bool:
-        user = await request.auser()
-        request.user = user
-        return user.is_authenticated
+        return bool(getattr(request, 'user_id', False))
 
     @override
     def on_failure_response(self) -> HttpResponse:

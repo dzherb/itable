@@ -19,13 +19,16 @@ class IsPortfolioOwner(Permission):
         *args: typing.Any,
         **kwargs: typing.Any,
     ) -> bool:
+        if not hasattr(request, 'user_id'):
+            return False
+
         # We don't want other users to know
         # about not theirs portfolios.
         # That's why we return 404 on check fail.
         await aget_object_or_404_json(
             Portfolio.objects.active().only(),
             pk=kwargs[self.argument_name],
-            owner=request.user.id,
+            owner=request.user_id,
         )
 
         return True
