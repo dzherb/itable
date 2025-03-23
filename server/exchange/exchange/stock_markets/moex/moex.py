@@ -8,6 +8,7 @@ from typing import override
 import aiohttp
 import aiohttp.web_exceptions
 import aiomoex
+from circuitbreaker import CircuitBreaker
 
 from exchange.exchange.stock_markets.moex.iss_client import (
     ISSClient,
@@ -20,7 +21,6 @@ from exchange.exchange.stock_markets.stock_market_protocol import (
     StockMarketProtocol,
 )
 from utils.cache import alru_method_shared_cache
-from utils.circuit_breaker import ResettableCircuitBreaker
 
 logger = logging.getLogger('exchange.stock_markets')
 
@@ -37,15 +37,13 @@ class MOEXServerError(MOEXError):
     pass
 
 
-class MOEXCircuitBreaker(ResettableCircuitBreaker):
+class MOEXCircuitBreaker(CircuitBreaker):  # type: ignore[misc]
     FAILURE_THRESHOLD = 5
     RECOVERY_TIMEOUT = 30
     EXPECTED_EXCEPTION = MOEXError
 
 
-moex_circuit_breaker: typing.Final[ResettableCircuitBreaker] = (
-    MOEXCircuitBreaker()
-)
+moex_circuit_breaker: typing.Final[CircuitBreaker] = MOEXCircuitBreaker()
 
 DEFAULT_TIMEOUT: typing.Final = aiohttp.ClientTimeout(total=5)
 
@@ -103,7 +101,7 @@ class MOEX(BaseMOEX, StockMarketProtocol):
         self._result: dict[str, SecurityDict] = {}
 
     @override
-    @moex_circuit_breaker
+    @moex_circuit_breaker  # type: ignore[misc]
     async def get_securities(
         self,
         tickers: Iterable[str],

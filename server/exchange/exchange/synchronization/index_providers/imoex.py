@@ -28,7 +28,7 @@ class IMOEXProvider(BaseMOEX, IndexProviderProtocol):
         self._result: list[SecurityWeightDict] = []
 
     @override
-    @moex_circuit_breaker
+    @moex_circuit_breaker  # type: ignore[misc]
     async def get_index_content(self) -> list[SecurityWeightDict]:
         try:
             async with self:
