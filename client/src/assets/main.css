@@ -1,2 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import 'tailwindcss';
 @import './nprogress.css';
+
+@theme {
+  --font-inter: 'Inter', sans-serif;
+  --color-primary-200: #cfe2f4;
+  --color-primary-300: #9fc5e9;
+  --color-primary-500: #3f8bd2;
+  --color-primary-600: #3272ae;
+  --color-primary: var(--color-primary-500);
+
+  --color-gray-*: initial;
+  --color-gray-100: #eff1f3;
+  --color-gray-200: #d9d9d9;
+  --color-gray-500: #808080;
+  --color-gray-900: #1f1f1f;
+}
