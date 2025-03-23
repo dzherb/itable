@@ -1,12 +1,8 @@
 import './assets/main.css'
-import { createApp } from './main'
+import { createVueApp } from './main'
 
-const { app, router } = createApp()
+const { app, router } = createVueApp()
 
-if (import.meta.env.DEV) {
+router.isReady().then(() => {
   app.mount('#app')
-} else {
-  router.isReady().then(() => {
-    app.mount('#app')
-  })
-}
+})

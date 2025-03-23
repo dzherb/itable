@@ -20,6 +20,8 @@
   --radius-soft: 0.875rem;
 }
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   html {
     font-family: var(--font-inter);
@@ -31,4 +33,11 @@
       cursor: pointer;
     }
   }
+}
+
+/* It helps with smooth theme switch transition */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
 }

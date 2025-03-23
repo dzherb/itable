@@ -1,14 +1,14 @@
 import type { SSRContext } from '@vue/server-renderer'
 
 import { renderToWebStream } from 'vue/server-renderer'
-import { createApp } from './main'
+import { createVueApp } from './main'
 
 interface Manifest {
   [key: string]: Array<string>
 }
 
 export async function render(url: string, manifest: Manifest) {
-  const { app, router } = createApp()
+  const { app, router } = createVueApp()
 
   await router.push(url) // todo try catch ?
 
