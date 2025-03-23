@@ -44,9 +44,9 @@ const _populateTemplateWithPreloadLinks = (template, preloadLinks) => {
 }
 
 const _populateTemplateWithRenderedBody = async (template, bodyContentStream) => {
-    const [htmlStart, htmlEnd] = template.split(BODY_PLACEHOLDER)
-    return htmlStart + await _streamToString(bodyContentStream) + htmlEnd
-  }
+  const [htmlStart, htmlEnd] = template.split(BODY_PLACEHOLDER)
+  return htmlStart + await _streamToString(bodyContentStream) + htmlEnd
+}
 
 ;(async () => {
   for (const url of _getUrlsToPrerender()) {
