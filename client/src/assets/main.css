@@ -4,6 +4,7 @@
 
 @theme {
   --font-inter: 'Inter', sans-serif;
+
   --color-primary-200: #cfe2f4;
   --color-primary-300: #9fc5e9;
   --color-primary-500: #3f8bd2;
@@ -15,4 +16,19 @@
   --color-gray-200: #d9d9d9;
   --color-gray-500: #808080;
   --color-gray-900: #1f1f1f;
+
+  --radius-soft: 0.875rem;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-inter);
+    color: var(--color-gray-900);
+  }
+
+  button {
+    &:not(:disabled) {
+      cursor: pointer;
+    }
+  }
 }
