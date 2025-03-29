@@ -10,12 +10,12 @@ import aiohttp.web_exceptions
 import aiomoex
 from circuitbreaker import CircuitBreaker
 
-from exchange.exchange.stock_markets.moex.iss_client import (
+from exchange.services.stock_markets.moex.iss_client import (
     ISSClient,
     ISSClientFactory,
     ISSClientFactoryImpl,
 )
-from exchange.exchange.stock_markets.stock_market_protocol import (
+from exchange.services.stock_markets.stock_market_protocol import (
     PartialSecurityDict,
     SecurityDict,
     StockMarketProtocol,

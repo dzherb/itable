@@ -3,10 +3,10 @@ import dataclasses
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse, JsonResponse
 
+from api.helpers.api_view import api_view
 from api.typedefs import (
     PopulatedSchemaRequest,
 )
-from api.views.api_view import api_view
 from users.authentication.exceptions import InvalidTokenError
 from users.authentication.jwt import (
     PyJWT,

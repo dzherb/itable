@@ -6,7 +6,7 @@ from django.test import AsyncClient, TestCase
 from django.urls import reverse
 
 from api.tests.helpers import generate_auth_header
-from exchange.exchange.stock_markets import MOEX
+from exchange.services.stock_markets import MOEX
 from exchange.tests.test_moex_integration import MockISSClientFactory
 
 User = get_user_model()

@@ -1,9 +1,9 @@
 from django.test import TestCase
 
-from exchange.exchange.synchronization.imoex_synchronizer import (
+from exchange.services.synchronization.imoex_synchronizer import (
     IMOEXSynchronizer,
 )
-from exchange.exchange.synchronization.index_providers import (
+from exchange.services.synchronization.index_providers import (
     IndexProviderProtocol,
     SecurityWeightDict,
 )

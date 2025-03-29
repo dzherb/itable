@@ -9,6 +9,7 @@ from django.http import HttpResponse, JsonResponse
 
 from api.exceptions import NotFoundError
 from api.helpers import aget_object_or_404_json
+from api.helpers.api_view import api_view
 from api.helpers.dispatcher import create_dispatcher
 from api.helpers.model_converters import ModelToDictConverter
 from api.permissions import IsPortfolioOwner
@@ -17,7 +18,6 @@ from api.typedefs import (
     AuthenticatedPopulatedSchemaRequest,
     AuthenticatedRequest,
 )
-from api.views.api_view import api_view
 from exchange.models import Security
 from portfolio.models import PortfolioItem
 

@@ -11,12 +11,12 @@ from django.utils import timezone
 from parameterized import parameterized
 
 from api.helpers import Dispatcher
+from api.helpers.api_view import api_view
 from api.helpers.model_converters import (
     ModelToDataclassConverter,
 )
 from api.helpers.schema_mixins import ValidateIdFieldsMixin
 from api.helpers.strings import undo_camel_case
-from api.views.api_view import api_view
 from exchange.models import Security
 from portfolio.models import Portfolio, PortfolioItem
 

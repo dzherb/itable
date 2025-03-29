@@ -3,17 +3,17 @@ from typing import final, override
 
 from django.db import models
 
-from exchange.exchange.synchronization.index_providers import (
+import exchange.models
+from exchange.services.synchronization.index_providers import (
     IndexProviderProtocol,
     SecurityWeightDict,
 )
-from exchange.exchange.synchronization.index_providers.imoex import (
+from exchange.services.synchronization.index_providers.imoex import (
     IMOEXProvider,
 )
-from exchange.exchange.synchronization.index_synchronizer_protocol import (
+from exchange.services.synchronization.index_synchronizer_protocol import (
     IndexSynchronizerProtocol,
 )
-import exchange.models
 import investment_tables.models
 from utils.db_helpers import aatomic
 

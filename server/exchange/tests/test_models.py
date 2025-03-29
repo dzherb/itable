@@ -2,8 +2,8 @@ from unittest import mock
 
 from django.test import TestCase
 
-from exchange.exchange.stock_markets import MOEX
 from exchange.models import Security
+from exchange.services.stock_markets import MOEX
 from exchange.tests.test_moex_integration import MockISSClientFactory
 
 

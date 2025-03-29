@@ -4,11 +4,11 @@ from typing import final, override
 
 import aiohttp
 
-from exchange.exchange.stock_markets.moex import BaseMOEX, moex_circuit_breaker
-from exchange.exchange.stock_markets.moex.iss_client import (
+from exchange.services.stock_markets.moex import BaseMOEX, moex_circuit_breaker
+from exchange.services.stock_markets.moex.iss_client import (
     ISSClientFactory,
 )
-from exchange.exchange.synchronization.index_providers import (
+from exchange.services.synchronization.index_providers import (
     IndexProviderProtocol,
     SecurityWeightDict,
 )

@@ -5,8 +5,8 @@ import logging
 from django.contrib import auth
 from django.http import HttpResponse, JsonResponse
 
+from api.helpers.api_view import api_view
 from api.request_checkers.schema_checker import PopulatedSchemaRequest
-from api.views.api_view import api_view
 from users.authentication.jwt import TokenPair
 from users.models import ItableUser
 

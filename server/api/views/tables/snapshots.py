@@ -5,6 +5,7 @@ from django.db import models
 from django.http import HttpResponse, JsonResponse
 
 from api.helpers import aget_object_or_404_json
+from api.helpers.api_view import api_view
 from api.helpers.dispatcher import create_dispatcher
 from api.helpers.model_converters import (
     ModelToDataclassConverter,
@@ -18,7 +19,6 @@ from api.typedefs import (
     AuthenticatedPopulatedSchemaRequest,
     AuthenticatedRequest,
 )
-from api.views.api_view import api_view
 from investment_tables.models import TableSnapshot, TableTemplate
 from portfolio.models import Portfolio
 

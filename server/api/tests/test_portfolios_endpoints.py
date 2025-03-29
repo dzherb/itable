@@ -9,8 +9,8 @@ from django.urls import reverse
 from parameterized import parameterized
 
 from api.tests.helpers import generate_auth_header
-from exchange.exchange.stock_markets import MOEX
 from exchange.models import Security
+from exchange.services.stock_markets import MOEX
 from exchange.tests.test_moex_integration import MockISSClientFactory
 from portfolio.models import Portfolio, PortfolioItem
 from utils.db_helpers import AsyncAtomic
