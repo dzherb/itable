@@ -4,6 +4,7 @@
 
 @theme {
   --font-inter: 'Inter', sans-serif;
+  --default-font-family: --theme(--font-inter, initial);
 
   --color-primary-200: #cfe2f4;
   --color-primary-300: #9fc5e9;
@@ -24,14 +25,12 @@
 
 @layer base {
   html {
-    font-family: var(--font-inter);
     color: var(--color-gray-900);
   }
 
-  button {
-    &:not(:disabled) {
-      cursor: pointer;
-    }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
 }
 
