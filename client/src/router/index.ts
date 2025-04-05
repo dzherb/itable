@@ -9,21 +9,23 @@ const newRouter = () => {
     routes: [
       {
         path: '',
+        redirect: { name: 'portfolios' },
         component: () => import('@/components/layouts/BaseLayout.vue'),
         children: [
           {
-            path: '/',
-            name: 'home',
-            redirect: { name: 'portfolios' },
-          },
-          {
             path: '/portfolios',
             name: 'portfolios',
+            meta: {
+              transition: 'slide-left'
+            },
             component: () => import('@/pages/PortfoliosPage.vue'),
           },
           {
             path: '/tables',
             name: 'tables',
+            meta: {
+              transition: 'slide-right'
+            },
             component: () => import('@/pages/TablesPage.vue'),
           },
         ],
