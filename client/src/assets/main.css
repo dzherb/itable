@@ -8,15 +8,15 @@
 
   --color-primary-200: #cfe2f4;
   --color-primary-300: #9fc5e9;
-  --color-primary-500: #3f8bd2;
-  --color-primary-600: #3272ae;
-  --color-primary: var(--color-primary-500);
+  --color-primary-400: #3f8bd2;
+  --color-primary-500: #246cb0;
+  --color-primary-800: #364655;
+  --color-primary: var(--color-primary-400);
 
   --color-gray-*: initial;
   --color-gray-100: #eff1f3;
-  --color-gray-200: #d9d9d9;
+  --color-gray-300: #d9d9d9;
   --color-gray-500: #808080;
-  --color-gray-900: #1f1f1f;
 
   --radius-soft: 0.875rem;
 }
@@ -29,7 +29,7 @@
   }
 
   button:not(:disabled),
-  [role="button"]:not(:disabled) {
+  [role='button']:not(:disabled) {
     cursor: pointer;
   }
 }

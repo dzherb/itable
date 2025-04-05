@@ -8,14 +8,25 @@ const newRouter = () => {
     history: createHistory(import.meta.env.BASE_URL),
     routes: [
       {
-        path: '/',
-        name: 'home',
-        component: () => import('../views/HomeView.vue'),
-      },
-      {
-        path: '/about',
-        name: 'about',
-        component: () => import('../views/AboutView.vue'),
+        path: '',
+        component: () => import('@/components/layouts/BaseLayout.vue'),
+        children: [
+          {
+            path: '/',
+            name: 'home',
+            redirect: { name: 'portfolios' },
+          },
+          {
+            path: '/portfolios',
+            name: 'portfolios',
+            component: () => import('@/pages/PortfoliosPage.vue'),
+          },
+          {
+            path: '/tables',
+            name: 'tables',
+            component: () => import('@/pages/TablesPage.vue'),
+          },
+        ],
       },
     ],
   })
