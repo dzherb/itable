@@ -21,9 +21,9 @@ const {render} = await import(SERVER_BUILD_PATH + '/entry-server.js')
 
 const _getUrlsToPrerender = () => {
   return fs
-    .readdirSync(_toAbsolute('../src/views'))
+    .readdirSync(_toAbsolute('../src/pages'))
     .map((file) => {
-      const name = file.replace(/View\.vue$/, '').toLowerCase()
+      const name = file.replace(/Page\.vue$/, '').toLowerCase()
       return name === 'home' ? `/` : `/${name}`
     })
 }

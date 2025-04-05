@@ -16,7 +16,7 @@ const newRouter = () => {
             path: '/portfolios',
             name: 'portfolios',
             meta: {
-              transition: 'slide-left'
+              transition: 'slide-left',
             },
             component: () => import('@/pages/PortfoliosPage.vue'),
           },
@@ -24,7 +24,7 @@ const newRouter = () => {
             path: '/tables',
             name: 'tables',
             meta: {
-              transition: 'slide-right'
+              transition: 'slide-right',
             },
             component: () => import('@/pages/TablesPage.vue'),
           },

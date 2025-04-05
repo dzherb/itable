@@ -29,6 +29,10 @@
     color: var(--color-gray-900);
   }
 
+  a {
+    cursor: pointer;
+  }
+
   button:not(:disabled),
   [role='button']:not(:disabled) {
     cursor: pointer;
