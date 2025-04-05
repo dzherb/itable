@@ -1,25 +1,30 @@
 <template>
-  <NavigationBar />
-  <RouterView v-slot="{ Component, route }">
-    <Transition mode="out-in" :name="applyTransition ? String(route?.meta?.transition) : ''">
-      <KeepAlive>
-        <Component class="w-full" :is="Component" />
-      </KeepAlive>
-    </Transition>
-  </RouterView>
+  <main :class="{ dark: isDark }" class="min-h-screen dark:bg-primary-800">
+    <NavigationBar />
+    <RouterView v-slot="{ Component, route }">
+      <Transition mode="out-in" :name="applyTransition ? String(route?.meta?.transition) : ''">
+        <KeepAlive>
+          <Component class="w-full" :is="Component" />
+        </KeepAlive>
+      </Transition>
+    </RouterView>
+  </main>
 </template>
 
 <script setup lang="ts">
 import NavigationBar from '@/components/navigation/NavigationBar.vue'
-import {usePreferredReducedMotion} from "@vueuse/core";
-import {computed} from "vue";
+import { usePreferredReducedMotion } from '@vueuse/core'
+import { computed } from 'vue'
+import { useTheme } from '@/composables/useTheme.ts'
 
 const reducedMotion = usePreferredReducedMotion()
 const applyTransition = computed(() => reducedMotion.value === 'no-preference')
+
+const { isDark } = useTheme()
 </script>
 
 <style scoped>
-@import "@/assets/main.css";
+@import '@/assets/main.css';
 
 .slide-left-enter-active,
 .slide-left-leave-active,
@@ -59,5 +64,4 @@ const applyTransition = computed(() => reducedMotion.value === 'no-preference')
   position: absolute;
   left: 0;
 }
-
 </style>

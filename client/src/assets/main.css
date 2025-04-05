@@ -11,6 +11,7 @@
   --color-primary-400: #3f8bd2;
   --color-primary-500: #246cb0;
   --color-primary-800: #364655;
+  --color-primary-900: #2a333c;
   --color-primary: var(--color-primary-400);
 
   --color-gray-*: initial;
