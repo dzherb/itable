@@ -30,6 +30,10 @@ const newRouter = () => {
           },
         ],
       },
+      {
+        path: '/auth/login',
+        component: () => import('@/pages/LoginPage.vue'),
+      },
     ],
   })
 

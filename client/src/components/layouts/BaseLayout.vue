@@ -1,10 +1,10 @@
 <template>
   <NavigationBar class="z-20" />
-  <div class="h-[72px] w-full bg-primary-900"></div>
   <main
     :class="{ dark: isDark }"
     class="relative min-h-screen overflow-x-hidden dark:bg-primary-800"
   >
+    <div class="h-[72px] w-full bg-primary dark:bg-primary-900"></div>
     <RouterView v-slot="{ Component, route }">
       <Transition mode="out-in" :name="applyTransition ? String(route?.meta?.transition) : ''">
         <KeepAlive>

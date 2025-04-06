@@ -14,6 +14,8 @@
   --color-primary-900: #2a333c;
   --color-primary: var(--color-primary-400);
 
+  --color-other-diamond: #52dadf;
+
   --color-gray-*: initial;
   --color-gray-100: #eff1f3;
   --color-gray-300: #d9d9d9;
@@ -26,13 +28,10 @@
 
 @layer base {
   html {
-    color: var(--color-gray-900);
+    color: var(--color-primary-900);
   }
 
-  a {
-    cursor: pointer;
-  }
-
+  a,
   button:not(:disabled),
   [role='button']:not(:disabled) {
     cursor: pointer;
