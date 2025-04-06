@@ -4,15 +4,15 @@
   >
     <AnnotatedInput autofocus v-model="login" label="Почта" name="email" />
     <AnnotatedInput v-model="password" label="Пароль" name="password" type="password" />
-    <div class="mt-5 flex items-center gap-2">
-      <span class="flex basis-1/2 justify-center">
+    <div class="mt-5 flex flex-col-reverse items-center gap-5 sm:flex-row sm:gap-2">
+      <span class="flex justify-center sm:basis-1/2">
         <BaseLink>Забыли пароль?</BaseLink>
       </span>
       <BaseButton
         type="button"
         @click="attemptToLogin()"
         :disabled="isLoginButtonDisabled"
-        class="basis-1/2"
+        class="w-full sm:basis-1/2"
         >Войти</BaseButton
       >
     </div>
