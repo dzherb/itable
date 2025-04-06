@@ -1,10 +1,13 @@
 <template>
-  <NavigationBar class="z-20"/>
-  <main :class="{ dark: isDark }" class="min-h-screen dark:bg-primary-800 relative pt-[72px] overflow-x-hidden">
+  <NavigationBar class="z-20" />
+  <main
+    :class="{ dark: isDark }"
+    class="relative min-h-screen overflow-x-hidden pt-[72px] dark:bg-primary-800"
+  >
     <RouterView v-slot="{ Component, route }">
       <Transition mode="out-in" :name="applyTransition ? String(route?.meta?.transition) : ''">
         <KeepAlive>
-          <Component class="w-full" :is="Component"/>
+          <Component class="w-full" :is="Component" />
         </KeepAlive>
       </Transition>
     </RouterView>
@@ -13,15 +16,22 @@
 
 <script setup lang="ts">
 import NavigationBar from '@/components/navigation/NavigationBar.vue'
-import {usePreferredReducedMotion} from '@vueuse/core'
-import {computed} from 'vue'
-import {useTheme} from '@/composables/useTheme.ts'
+import { usePreferredReducedMotion } from '@vueuse/core'
+import { computed } from 'vue'
+import { useTheme } from '@/composables/useTheme.ts'
+import { useTailwindBreakpoints } from '@/composables/useTailwindBreakpoints.ts'
 
 const reducedMotion = usePreferredReducedMotion()
-const applyTransition = computed(() => reducedMotion.value === 'no-preference')
+
+const { breakpoints } = useTailwindBreakpoints()
+const lgOrGreater = breakpoints.greaterOrEqual('lg')
+
+const applyTransition = computed(
+  () => reducedMotion.value === 'no-preference' && !lgOrGreater.value,
+)
 
 // todo hydration mismatch if client expects dark mode on
-const {isDark} = useTheme()
+const { isDark } = useTheme()
 </script>
 
 <style scoped>
@@ -31,28 +41,27 @@ const {isDark} = useTheme()
 .slide-left-leave-active,
 .slide-right-enter-active,
 .slide-right-leave-active {
-  @apply transition-all duration-200 ease-in-out lg:transition-none lg:duration-0;
+  @apply transition-all duration-200 ease-in-out;
 }
-
 
 .slide-left-enter-from {
   transform: translateX(-100%);
 }
 
 .slide-left-leave-to {
-transform: translateX(100%);
+  transform: translateX(100%);
 }
 
 .slide-right-enter-from {
-transform: translateX(100%);
+  transform: translateX(100%);
 }
 
 .slide-right-leave-to {
-transform: translateX(-100%);
+  transform: translateX(-100%);
 }
 
 .slide-left-leave-from,
 .slide-right-leave-from {
-transform: translateX(0);
+  transform: translateX(0);
 }
 </style>

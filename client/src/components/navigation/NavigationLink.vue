@@ -3,10 +3,10 @@
     <a
       :href
       @click="navigate"
-      class="text-xs font-bold text-white dark:text-primary-300 transition-opacity"
+      class="text-xs font-bold text-white transition-opacity dark:text-primary-300"
       :class="{ 'opacity-50': !isActive }"
     >
-      <slot/>
+      <slot />
     </a>
   </RouterLink>
 </template>
@@ -15,6 +15,4 @@
 defineProps(['to'])
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
