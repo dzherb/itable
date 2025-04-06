@@ -1,5 +1,7 @@
 <template>
-  <form class="flex w-full flex-col gap-5 rounded-soft bg-white px-6 py-6 dark:bg-primary-800">
+  <form
+    class="flex w-full flex-col gap-5 rounded-soft bg-white px-6 py-6 shadow-xl dark:bg-primary-800"
+  >
     <AnnotatedInput autofocus v-model="login" label="Почта" name="email" />
     <AnnotatedInput v-model="password" label="Пароль" name="password" type="password" />
     <div class="mt-5 flex items-center gap-2">
