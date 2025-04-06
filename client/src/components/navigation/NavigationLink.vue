@@ -3,7 +3,7 @@
     <a
       :href
       @click="navigate"
-      class="text-xs font-bold text-white transition-opacity dark:text-primary-300"
+      class="text-xs font-bold text-white transition-opacity lg:text-sm dark:text-primary-300"
       :class="{ 'opacity-50': !isActive }"
     >
       <slot />
