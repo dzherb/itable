@@ -9,6 +9,7 @@ const newRouter = () => {
     routes: [
       {
         path: '',
+        name: 'home',
         redirect: { name: 'portfolios' },
         component: () => import('@/components/layouts/BaseLayout.vue'),
         children: [

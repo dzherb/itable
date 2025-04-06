@@ -7,7 +7,7 @@
     >
       {{ label }}
     </label>
-    <BaseInput v-bind="$attrs" />
+    <BaseInput v-bind="$attrs" :autofocus />
   </div>
 </template>
 
@@ -20,7 +20,6 @@ defineOptions({
 
 const props = defineProps<{
   label?: string
+  autofocus?: boolean
 }>()
 </script>
-
-<style scoped></style>

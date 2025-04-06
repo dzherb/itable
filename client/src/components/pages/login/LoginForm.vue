@@ -1,15 +1,18 @@
 <template>
-  <form
-    @submit.prevent
-    class="flex w-full flex-col gap-5 rounded-soft bg-white px-6 py-6 dark:bg-primary-800"
-  >
-    <AnnotatedInput v-model="login" label="Почта" name="email" />
+  <form class="flex w-full flex-col gap-5 rounded-soft bg-white px-6 py-6 dark:bg-primary-800">
+    <AnnotatedInput autofocus v-model="login" label="Почта" name="email" />
     <AnnotatedInput v-model="password" label="Пароль" name="password" type="password" />
     <div class="mt-5 flex items-center gap-2">
-      <span class="basis-1/2">
-        <a class="text-xs text-primary-400 dark:text-primary-300">Забыли пароль?</a>
+      <span class="flex basis-1/2 justify-center">
+        <BaseLink>Забыли пароль?</BaseLink>
       </span>
-      <BaseButton :disabled="isLoginButtonDisabled" class="basis-1/2">Войти</BaseButton>
+      <BaseButton
+        type="button"
+        @click="attemptToLogin()"
+        :disabled="isLoginButtonDisabled"
+        class="basis-1/2"
+        >Войти</BaseButton
+      >
     </div>
   </form>
 </template>
@@ -18,11 +21,26 @@
 import BaseButton from '@/components/reusable/buttons/BaseButton.vue'
 import AnnotatedInput from '@/components/reusable/forms/inputs/AnnotatedInput.vue'
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import BaseLink from '@/components/reusable/links/BaseLink.vue'
+import { onKeyStroke } from '@vueuse/core'
 
 const login = ref('')
 const password = ref('')
 
 const isLoginButtonDisabled = computed(() => {
   return !(login.value && password.value)
+})
+
+const router = useRouter()
+
+const attemptToLogin = async () => {
+  await router.push({ name: 'home' })
+}
+
+onKeyStroke('Enter', () => {
+  if (!isLoginButtonDisabled.value) {
+    attemptToLogin()
+  }
 })
 </script>
