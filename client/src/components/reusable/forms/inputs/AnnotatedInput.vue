@@ -1,8 +1,9 @@
 <template>
   <div class="flex flex-col gap-3">
     <label
-      class="text-primary-400 text-sm font-bold select-none dark:text-primary-200"
-      v-if="label" :for="String($attrs?.name)"
+      class="text-sm font-bold text-primary-400 select-none dark:text-primary-200"
+      v-if="label"
+      :for="String($attrs?.name)"
     >
       {{ label }}
     </label>
@@ -11,10 +12,10 @@
 </template>
 
 <script setup lang="ts">
-import BaseInput from "@/components/reusable/forms/inputs/BaseInput.vue";
+import BaseInput from '@/components/reusable/forms/inputs/BaseInput.vue'
 
 defineOptions({
-  inheritAttrs: false
+  inheritAttrs: false,
 })
 
 const props = defineProps<{
@@ -22,6 +23,4 @@ const props = defineProps<{
 }>()
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

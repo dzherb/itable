@@ -1,8 +1,11 @@
 <template>
-  <form @submit.prevent class="w-full flex flex-col gap-5 rounded-soft bg-white px-6 py-6 dark:bg-primary-800">
-    <AnnotatedInput v-model="login" label="Почта" name="email"/>
-    <AnnotatedInput v-model="password" label="Пароль" name="password" type="password"/>
-    <div class="flex items-center gap-2 mt-5">
+  <form
+    @submit.prevent
+    class="flex w-full flex-col gap-5 rounded-soft bg-white px-6 py-6 dark:bg-primary-800"
+  >
+    <AnnotatedInput v-model="login" label="Почта" name="email" />
+    <AnnotatedInput v-model="password" label="Пароль" name="password" type="password" />
+    <div class="mt-5 flex items-center gap-2">
       <span class="basis-1/2">
         <a class="text-xs text-primary-400 dark:text-primary-300">Забыли пароль?</a>
       </span>
@@ -12,9 +15,9 @@
 </template>
 
 <script setup lang="ts">
-import BaseButton from "@/components/reusable/buttons/BaseButton.vue";
-import AnnotatedInput from "@/components/reusable/forms/inputs/AnnotatedInput.vue";
-import {computed, ref} from "vue";
+import BaseButton from '@/components/reusable/buttons/BaseButton.vue'
+import AnnotatedInput from '@/components/reusable/forms/inputs/AnnotatedInput.vue'
+import { computed, ref } from 'vue'
 
 const login = ref('')
 const password = ref('')
