@@ -1,5 +1,5 @@
 <template>
-  <nav class="flex items-center justify-start gap-6 bg-primary px-5 py-6 dark:bg-primary-900">
+  <nav class="fixed w-full flex items-center justify-start gap-6 bg-primary px-5 py-6 dark:bg-primary-900">
     <NavigationLink :to="{ name: 'portfolios' }">
       Мои портфели
     </NavigationLink>

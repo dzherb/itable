@@ -1,6 +1,6 @@
 <template>
   <div class="flex max-w-[700px] flex-col gap-2">
-    <PortfolioItem v-for="_ in 3" />
+    <PortfolioItem name="Портфель 1" :total="500000" v-for="_ in 2" />
     <PortfolioCreatePlug class="mt-4" />
   </div>
 </template>
