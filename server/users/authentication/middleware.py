@@ -31,7 +31,7 @@ class JWTAuthenticationMiddleware:
                 JWTAuthenticationBackend().authenticate_from_header(request)
             )
             request = typing.cast(AuthenticatedRequest, request)
-            request.user_id = payload['user_id']
+            request.user_id = payload['uid']
         except PermissionDenied:
             pass
 

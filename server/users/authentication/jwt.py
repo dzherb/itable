@@ -1,16 +1,17 @@
-import datetime
+import datetime as dt
 import typing
 
 from django.conf import settings
 from django.utils import timezone
+from django.utils.timezone import make_aware
 import jwt
 
 from users.authentication.exceptions import InvalidTokenError
 
 
 class TokenPayload(typing.TypedDict):
-    user_id: int
-    expires_at: str  # iso
+    uid: int
+    exp: float
 
 
 class AccessTokenPayload(TokenPayload):
@@ -37,6 +38,8 @@ class JWTPayloadValidator(typing.Protocol):
 
 
 class PyJWT(JWT):
+    __slots__ = ('_algorithm',)
+
     def __init__(self) -> None:
         self._algorithm = 'HS256'
 
@@ -52,10 +55,10 @@ class PyJWT(JWT):
             ),
         )
 
-    def _generate_token(self, user_id: int, ttl: datetime.timedelta) -> str:
+    def _generate_token(self, user_id: int, ttl: dt.timedelta) -> str:
         payload: TokenPayload = {
-            'user_id': user_id,
-            'expires_at': (timezone.now() + ttl).isoformat(),
+            'uid': user_id,
+            'exp': (timezone.now() + ttl).timestamp(),
         }
         return jwt.encode(
             payload=typing.cast(dict[str, typing.Any], payload),
@@ -78,7 +81,8 @@ class PyJWT(JWT):
 class PyJWTPayloadValidator(JWTPayloadValidator):
     def is_valid(self, payload: TokenPayload) -> bool:
         now = timezone.now()
-        if datetime.datetime.fromisoformat(payload['expires_at']) < now:
+        timestamp = payload['exp']
+        if make_aware(dt.datetime.fromtimestamp(timestamp)) < now:
             return False
 
         return True

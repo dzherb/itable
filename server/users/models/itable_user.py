@@ -64,13 +64,13 @@ class ItableUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
-    JWT_FABRIC: type[JWT] = PyJWT
+    JWT_FABRIC: JWT = PyJWT()
 
     def can_refresh_tokens(self, refresh_token: str) -> bool:
         return self.refresh_token == refresh_token
 
     async def generate_new_tokens(self) -> TokenPair:
-        token_pair = self.JWT_FABRIC().generate_tokens(self.pk)
+        token_pair = self.JWT_FABRIC.generate_tokens(self.pk)
         await self._set_refresh_token(token_pair.refresh_token)
         return token_pair
 
