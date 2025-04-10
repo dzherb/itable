@@ -20,4 +20,4 @@ async def me(request: AuthenticatedRequest) -> HttpResponse:
         source=user,
         schema=UserSchema,
     )
-    return JsonResponse(converter.convert())
+    return JsonResponse(await converter.convert())

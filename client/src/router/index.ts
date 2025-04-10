@@ -46,7 +46,7 @@ const newRouter = () => {
   const { start, done } = useNProgress()
 
   router.beforeEach(async (to, from, next) => {
-    if (!to.hash && typeof document !== 'undefined') {
+    if (!to.hash && !import.meta.env.SSR) {
       start()
     }
     const auth = useAuthStore()
@@ -67,7 +67,7 @@ const newRouter = () => {
   })
 
   router.afterEach((to, from) => {
-    if (!to.hash && typeof document !== 'undefined') {
+    if (!to.hash && !import.meta.env.SSR) {
       done()
     }
   })

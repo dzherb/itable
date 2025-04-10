@@ -4,6 +4,11 @@ interface FetchOptions extends RequestInit {
   _retry?: boolean
 }
 
+interface annotatedError extends Error {
+  status?: number
+  data?: unknown
+}
+
 let isRefreshing = false
 let queue: Array<{
   requestFn: (token: string) => Promise<Response>
@@ -28,6 +33,7 @@ const resolveQueue = (error: Error | null, token?: string): void => {
 export const apiFetch = async (
   input: RequestInfo,
   options: FetchOptions = {},
+  handleTokensRefresh = true,
 ): Promise<Response> => {
   const token = getAccessToken()
 
@@ -44,7 +50,8 @@ export const apiFetch = async (
 
   const response = await fetch(input, fetchOptions)
 
-  if (response.status === 401 && !options._retry) {
+  // TODO maybe I should create apiFetchWithRefresh?
+  if (handleTokensRefresh && response.status === 401 && !options._retry) {
     if (isRefreshing) {
       return queueRequest((newToken) =>
         apiFetch(input, {
@@ -79,6 +86,14 @@ export const apiFetch = async (
       clearTokens()
       throw err
     }
+  }
+
+  if (!response.ok) {
+    const errData = await response.json().catch(() => ({}))
+    const err: annotatedError = new Error(response.statusText || 'Request failed')
+    err.status = response.status
+    err.data = errData
+    throw err
   }
 
   return response

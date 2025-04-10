@@ -2,7 +2,7 @@
   <form
     class="flex w-full flex-col gap-5 rounded-soft bg-white px-6 py-6 shadow-xl dark:bg-primary-800"
   >
-    <AnnotatedInput autofocus v-model="login" label="Почта" name="email" />
+    <AnnotatedInput autofocus v-model="email" label="Почта" name="email" />
     <AnnotatedInput v-model="password" label="Пароль" name="password" type="password" />
     <div class="mt-5 flex flex-col-reverse items-center gap-5 sm:flex-row sm:gap-2">
       <span class="flex justify-center sm:basis-1/2">
@@ -25,19 +25,31 @@ import AnnotatedInput from '@/components/reusable/forms/inputs/AnnotatedInput.vu
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseLink from '@/components/reusable/links/BaseLink.vue'
-import { onKeyStroke } from '@vueuse/core'
+import {onKeyStroke, useAsyncState} from '@vueuse/core'
+import { useAuthStore } from '@/stores/auth.ts'
 
-const login = ref('')
+const email = ref('')
 const password = ref('')
 
+const { execute: login, isLoading, isReady: isLoggedIn } = useAsyncState(
+  () => useAuthStore().login(email.value, password.value),
+  null,
+  {
+    immediate: false
+  }
+)
+
 const isLoginButtonDisabled = computed(() => {
-  return !(login.value && password.value)
+  return isLoading.value || !(email.value && password.value)
 })
 
 const router = useRouter()
 
 const attemptToLogin = async () => {
-  await router.push({ name: 'home' })
+  await login()
+  if (isLoggedIn.value) {
+    await router.push({ name: 'home' })
+  }
 }
 
 onKeyStroke('Enter', () => {

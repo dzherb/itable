@@ -12,17 +12,24 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const isAuthenticated = ref(false)
 
-  const login = async (email: string, password: string): Promise<void> => {
-    const res = await fetch('/api/auth/login/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-
-    const data: TokenPairResponse = await res.json()
-    const tokens: TokenPair = { accessToken: data.access_token, refreshToken: data.refresh_token }
-    if (!res.ok) throw new Error('Login failed')
-
+  const login = async (email: string, password: string) => {
+    const response = await apiFetch(
+      '/api/auth/login/',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password
+        })
+      },
+      false
+    )
+    const data: TokenPairResponse = await response.json()
+    const tokens: TokenPair = {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+    }
     setTokens(tokens)
     isAuthenticated.value = true
   }
@@ -33,7 +40,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchProfile() {
-    const res = await apiFetch('/api/users/me/')
+    const res = await apiFetch('/api/users/me/', {}, false)
     if (res.ok) {
       user.value = await res.json()
       isAuthenticated.value = true

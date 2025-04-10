@@ -25,7 +25,7 @@ async def login(
 ) -> HttpResponse:
     user_credentials: UserCredentialsSchema = request.populated_schema
     user: ItableUser | None = await auth.aauthenticate(
-        request,
+        None,
         email=user_credentials.email,
         password=user_credentials.password,
     )
