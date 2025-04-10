@@ -10,7 +10,7 @@ interface Manifest {
 export async function render(url: string, manifest: Manifest) {
   const { app, router } = createVueApp()
 
-  await router.push(url) // todo try catch ?
+  await router.push(url)
 
   // passing SSR context object which will be available via useSSRContext()
   // @vitejs/plugin-vue injects code into a component's setup() that registers

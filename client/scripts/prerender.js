@@ -21,7 +21,8 @@ const {render} = await import(SERVER_BUILD_PATH + '/entry-server.js')
 
 const _getUrlsToPrerender = () => {
   return fs
-    .readdirSync(_toAbsolute('../src/pages'))
+    .readdirSync(_toAbsolute('../src/pages'), {recursive: true})
+    .filter((file) => file.endsWith('.vue'))
     .map((file) => {
       const name = file.replace(/Page\.vue$/, '').toLowerCase()
       return name === 'home' ? `/` : `/${name}`
@@ -48,6 +49,15 @@ const _populateTemplateWithRenderedBody = async (template, bodyContentStream) =>
   return htmlStart + await _streamToString(bodyContentStream) + htmlEnd
 }
 
+const _ensureSubdirectoriesExistence = (filePath) => {
+  const dirname = path.dirname(filePath);
+  if (fs.existsSync(dirname)) {
+    return true;
+  }
+  _ensureSubdirectoriesExistence(dirname);
+  fs.mkdirSync(dirname);
+}
+
 ;(async () => {
   for (const url of _getUrlsToPrerender()) {
 
@@ -56,10 +66,13 @@ const _populateTemplateWithRenderedBody = async (template, bodyContentStream) =>
     let html = _populateTemplateWithPreloadLinks(template, preloadLinks)
     html = await _populateTemplateWithRenderedBody(html, stream)
 
-    const filePath = `${CLIENT_BUILD_PATH}${url === '/' ? '/index' : url}.html`
-    fs.writeFileSync(_toAbsolute(filePath), html)
+    const filePathRelative = `${CLIENT_BUILD_PATH}${url === '/' ? '/index' : url}.html`
+    const filePath = _toAbsolute(filePathRelative)
 
-    console.log('pre-rendered:', filePath)
+    _ensureSubdirectoriesExistence(filePath)
+    fs.writeFileSync(filePath, html)
+
+    console.log('pre-rendered:', filePathRelative)
   }
 
   // done, delete .vite directory including ssr manifest

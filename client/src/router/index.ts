@@ -38,7 +38,7 @@ const newRouter = () => {
       {
         path: '/auth/login',
         name: 'login',
-        component: () => import('@/pages/LoginPage.vue'),
+        component: () => import('@/pages/auth/LoginPage.vue'),
       },
     ],
   })
@@ -49,6 +49,11 @@ const newRouter = () => {
     if (!to.hash && !import.meta.env.SSR) {
       start()
     }
+
+    if (!to.meta.requiresAuth || import.meta.env.SSR) {
+      next()
+    }
+
     const auth = useAuthStore()
 
     if (!auth.isAuthenticated && getAccessToken()) {
@@ -59,7 +64,7 @@ const newRouter = () => {
       }
     }
 
-    if (to.meta.requiresAuth && !auth.isAuthenticated) {
+    if (!auth.isAuthenticated) {
       next({ name: 'login' })
     } else {
       next()
