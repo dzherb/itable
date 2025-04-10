@@ -33,8 +33,8 @@ class JWT(typing.Protocol):
     def decode_token(self, token: str) -> TokenPayload: ...
 
 
-class JWTPayloadValidator(typing.Protocol):
-    def is_valid(self, payload: TokenPayload) -> bool: ...
+class JWTPayloadChecker(typing.Protocol):
+    def is_active(self, payload: TokenPayload) -> bool: ...
 
 
 class PyJWT(JWT):
@@ -78,8 +78,8 @@ class PyJWT(JWT):
             raise InvalidTokenError from e
 
 
-class PyJWTPayloadValidator(JWTPayloadValidator):
-    def is_valid(self, payload: TokenPayload) -> bool:
+class PyJWTPayloadChecker(JWTPayloadChecker):
+    def is_active(self, payload: TokenPayload) -> bool:
         now = timezone.now()
         timestamp = payload['exp']
         if make_aware(dt.datetime.fromtimestamp(timestamp)) < now:

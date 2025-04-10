@@ -1,5 +1,7 @@
 import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 import { useNProgress } from '@vueuse/integrations/useNProgress'
+import { useAuthStore } from '@/stores/auth.ts'
+import { getAccessToken } from '@/api/authService.ts'
 
 const newRouter = () => {
   const createHistory = import.meta.env.SSR ? createMemoryHistory : createWebHistory
@@ -18,6 +20,7 @@ const newRouter = () => {
             name: 'portfolios',
             meta: {
               transition: 'slide-left',
+              requiresAuth: true,
             },
             component: () => import('@/pages/PortfoliosPage.vue'),
           },
@@ -26,6 +29,7 @@ const newRouter = () => {
             name: 'tables',
             meta: {
               transition: 'slide-right',
+              requiresAuth: true,
             },
             component: () => import('@/pages/TablesPage.vue'),
           },
@@ -33,6 +37,7 @@ const newRouter = () => {
       },
       {
         path: '/auth/login',
+        name: 'login',
         component: () => import('@/pages/LoginPage.vue'),
       },
     ],
@@ -40,11 +45,25 @@ const newRouter = () => {
 
   const { start, done } = useNProgress()
 
-  router.beforeEach((to, from, next) => {
+  router.beforeEach(async (to, from, next) => {
     if (!to.hash && typeof document !== 'undefined') {
       start()
     }
-    next()
+    const auth = useAuthStore()
+
+    if (!auth.isAuthenticated && getAccessToken()) {
+      try {
+        await auth.fetchProfile()
+      } catch {
+        auth.logout()
+      }
+    }
+
+    if (to.meta.requiresAuth && !auth.isAuthenticated) {
+      next({ name: 'login' })
+    } else {
+      next()
+    }
   })
 
   router.afterEach((to, from) => {

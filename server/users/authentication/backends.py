@@ -9,9 +9,9 @@ from django.http import HttpRequest
 from users.authentication import exceptions
 from users.authentication.jwt import (
     JWT,
-    JWTPayloadValidator,
+    JWTPayloadChecker,
     PyJWT,
-    PyJWTPayloadValidator,
+    PyJWTPayloadChecker,
     TokenPayload,
 )
 from users.models import ItableUser
@@ -20,9 +20,9 @@ User = get_user_model()
 
 
 class JWTAuthenticationBackend(ModelBackend):
-    AUTH_HEADER_PREFIX = 'Token'
+    AUTH_HEADER_PREFIX = 'Bearer'
     JWT_FACTORY: JWT = PyJWT()
-    JWT_PAYLOAD_VALIDATOR: JWTPayloadValidator = PyJWTPayloadValidator()
+    JWT_PAYLOAD_CHECKER: JWTPayloadChecker = PyJWTPayloadChecker()
 
     def authenticate(
         self,
@@ -34,7 +34,7 @@ class JWTAuthenticationBackend(ModelBackend):
         if request is not None and self._has_auth_header(request):
             payload = self.authenticate_from_header(request)
         elif access_token := kwargs.get('access_token'):
-            payload = self.check_token(access_token)
+            payload = self.get_token_payload(access_token)
         else:
             return None
 
@@ -60,9 +60,9 @@ class JWTAuthenticationBackend(ModelBackend):
         if auth_prefix != self.AUTH_HEADER_PREFIX:
             raise PermissionDenied
 
-        return self.check_token(access_token)
+        return self.get_token_payload(access_token)
 
-    def check_token(self, access_token: str) -> TokenPayload:
+    def get_token_payload(self, access_token: str) -> TokenPayload:
         try:
             payload: TokenPayload = self.JWT_FACTORY.decode_token(
                 access_token,
@@ -70,7 +70,7 @@ class JWTAuthenticationBackend(ModelBackend):
         except exceptions.InvalidTokenError as e:
             raise PermissionDenied from e
 
-        if not self.JWT_PAYLOAD_VALIDATOR.is_valid(payload):
+        if not self.JWT_PAYLOAD_CHECKER.is_active(payload):
             raise PermissionDenied
 
         return payload

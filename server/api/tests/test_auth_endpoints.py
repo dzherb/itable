@@ -110,14 +110,14 @@ class AuthScreenplaysTestCase(TestCase):
 
         response = await self.client.get(
             reverse('api:portfolios'),
-            headers={'Authorization': f'Token {token_pair.access_token}'},
+            headers={'Authorization': f'Bearer {token_pair.access_token}'},
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     async def test_user_cant_use_artificial_access_token(self):
         response = await self.client.get(
             reverse('api:portfolios'),
-            headers={'Authorization': 'Token this_is_definitely_not_a_token'},
+            headers={'Authorization': 'Bearer this_is_definitely_not_a_token'},
         )
         self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
 
@@ -129,7 +129,7 @@ class AuthScreenplaysTestCase(TestCase):
             )
             response = await self.client.get(
                 reverse('api:portfolios'),
-                headers={'Authorization': f'Token {token_pair.access_token}'},
+                headers={'Authorization': f'Bearer {token_pair.access_token}'},
             )
             self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
 
@@ -147,7 +147,7 @@ class AuthScreenplaysTestCase(TestCase):
 
         response = await self.client.get(
             reverse('api:portfolios'),
-            headers={'Authorization': f'Token {new_access_token}'},
+            headers={'Authorization': f'Bearer {new_access_token}'},
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
@@ -169,7 +169,7 @@ class AuthScreenplaysTestCase(TestCase):
 
         response = await self.client.get(
             reverse('api:portfolios'),
-            headers={'Authorization': f'Token {new_access_token}'},
+            headers={'Authorization': f'Bearer {new_access_token}'},
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
@@ -193,7 +193,7 @@ class AuthScreenplaysTestCase(TestCase):
 
         response = await self.client.get(
             reverse('api:portfolios'),
-            headers={'Authorization': f'Token {token_pair.access_token}'},
+            headers={'Authorization': f'Bearer {token_pair.access_token}'},
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
 

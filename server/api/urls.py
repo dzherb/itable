@@ -16,6 +16,14 @@ urlpatterns = [
         ),
     ),
     path(
+        'users/',
+        include(
+            [
+                path('me/', views.users.me, name='me'),
+            ]
+        )
+    ),
+    path(
         'portfolios/',
         include(
             [

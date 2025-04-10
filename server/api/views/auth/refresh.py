@@ -10,7 +10,7 @@ from api.typedefs import (
 from users.authentication.exceptions import InvalidTokenError
 from users.authentication.jwt import (
     PyJWT,
-    PyJWTPayloadValidator,
+    PyJWTPayloadChecker,
     TokenPair,
 )
 from users.models import ItableUser
@@ -30,7 +30,7 @@ class RefreshTokenSchema:
         except InvalidTokenError as e:
             raise ValueError('token is not valid') from e
 
-        if not PyJWTPayloadValidator().is_valid(payload):
+        if not PyJWTPayloadChecker().is_active(payload):
             raise ValueError('token is expired')
 
         user_id = payload['uid']

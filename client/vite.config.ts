@@ -7,6 +7,14 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'true'
+  },
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8000',
+    }
+  },
   plugins: [
     vue(),
     vueDevTools(),
