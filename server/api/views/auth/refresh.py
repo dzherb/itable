@@ -33,7 +33,7 @@ class RefreshTokenSchema:
         if not PyJWTPayloadValidator().is_valid(payload):
             raise ValueError('token is expired')
 
-        user_id = payload['user_id']
+        user_id = payload['uid']
 
         try:
             user = await User.objects.aget(pk=user_id)

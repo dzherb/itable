@@ -18,7 +18,7 @@ from api.request_checkers.methods_checker import Methods
 from api.typedefs import ApiViewFunction, AsyncViewFunction
 
 
-class _ApiViewWrapper:
+class _ApiView:
     def __init__(
         self,
         *,
@@ -115,7 +115,7 @@ def api_view(
     permissions: Iterable[Permission] | None = None,
     request_schema: type | None = None,
     checkers: Iterable[Checker] | None = None,
-) -> _ApiViewWrapper: ...
+) -> _ApiView: ...
 
 
 def api_view[T: HttpRequest](
@@ -127,12 +127,12 @@ def api_view[T: HttpRequest](
     permissions: Iterable[Permission] | None = None,
     request_schema: type | None = None,
     checkers: Iterable[Checker] | None = None,
-) -> _ApiViewWrapper | AsyncViewFunction:
+) -> _ApiView | AsyncViewFunction:
     if view_function is not None:
         assert callable(view_function)
-        return _ApiViewWrapper()(view_function)
+        return _ApiView()(view_function)
 
-    return _ApiViewWrapper(
+    return _ApiView(
         methods=methods,
         login_required=login_required,
         permissions=permissions,

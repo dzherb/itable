@@ -21,8 +21,8 @@ User = get_user_model()
 
 class JWTAuthenticationBackend(ModelBackend):
     AUTH_HEADER_PREFIX = 'Token'
-    JWT_FACTORY: type[JWT] = PyJWT
-    JWT_PAYLOAD_VALIDATOR: type[JWTPayloadValidator] = PyJWTPayloadValidator
+    JWT_FACTORY: JWT = PyJWT()
+    JWT_PAYLOAD_VALIDATOR: JWTPayloadValidator = PyJWTPayloadValidator()
 
     def authenticate(
         self,
@@ -39,7 +39,7 @@ class JWTAuthenticationBackend(ModelBackend):
             return None
 
         try:
-            return User.objects.get(pk=payload['user_id'])
+            return User.objects.get(pk=payload['uid'])
         except User.DoesNotExist as e:
             raise PermissionDenied from e
 
@@ -64,13 +64,13 @@ class JWTAuthenticationBackend(ModelBackend):
 
     def check_token(self, access_token: str) -> TokenPayload:
         try:
-            payload: TokenPayload = self.JWT_FACTORY().decode_token(
+            payload: TokenPayload = self.JWT_FACTORY.decode_token(
                 access_token,
             )
         except exceptions.InvalidTokenError as e:
             raise PermissionDenied from e
 
-        if not self.JWT_PAYLOAD_VALIDATOR().is_valid(payload):
+        if not self.JWT_PAYLOAD_VALIDATOR.is_valid(payload):
             raise PermissionDenied
 
         return payload
