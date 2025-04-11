@@ -1,8 +1,5 @@
 <template>
-  <main
-    class="gradient flex min-h-screen flex-col items-center justify-center px-5"
-    :class="{ dark: isDark }"
-  >
+  <main class="gradient flex min-h-screen flex-col items-center justify-center px-5">
     <LogoWithTitle @click="toggleThemeWithTransition" class="absolute top-8 left-5" />
     <div class="relative w-full max-w-96">
       <h1
@@ -22,7 +19,7 @@ import LogoWithTitle from '@/components/pages/login/LogoWithTitle.vue'
 import LoginForm from '@/components/pages/login/LoginForm.vue'
 import LoginFooter from '@/components/pages/login/LoginFooter.vue'
 
-const { isDark, toggleThemeWithTransition } = useTheme()
+const { toggleThemeWithTransition } = useTheme()
 </script>
 
 <style scoped>

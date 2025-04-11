@@ -7,7 +7,9 @@
     <span class="grow"></span>
     <button class="flex items-center gap-4" @click="toggleThemeWithTransition">
       <SettingsIcon class="fill-white dark:fill-primary-300" />
-      <span v-if="mdOrGreater" class="text-xs font-bold text-white lg:text-sm dark:text-primary-300"
+      <span
+        v-show="mdOrGreater"
+        class="text-xs font-bold text-white lg:text-sm dark:text-primary-300"
         >Настройки</span
       >
     </button>

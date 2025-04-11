@@ -1,9 +1,6 @@
 <template>
   <NavigationBar class="z-20" />
-  <main
-    :class="{ dark: isDark }"
-    class="relative min-h-screen overflow-x-hidden dark:bg-primary-800"
-  >
+  <main class="relative min-h-screen overflow-x-hidden dark:bg-primary-800">
     <div class="h-[72px] w-full bg-primary dark:bg-primary-900"></div>
     <RouterView v-slot="{ Component, route }">
       <Transition mode="out-in" :name="applyTransition ? String(route?.meta?.transition) : ''">
@@ -30,9 +27,6 @@ const lgOrGreater = breakpoints.greaterOrEqual('lg')
 const applyTransition = computed(
   () => reducedMotion.value === 'no-preference' && !lgOrGreater.value,
 )
-
-// todo hydration mismatch if client expects dark mode on
-const { isDark } = useTheme()
 </script>
 
 <style scoped>

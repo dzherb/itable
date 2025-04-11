@@ -52,6 +52,7 @@ const newRouter = () => {
 
     if (!to.meta.requiresAuth || import.meta.env.SSR) {
       next()
+      return
     }
 
     const auth = useAuthStore()

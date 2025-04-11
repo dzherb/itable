@@ -1,5 +1,5 @@
 import { useColorMode } from '@vueuse/core'
-import { computed, nextTick } from 'vue'
+import { computed, nextTick, watchEffect } from 'vue'
 
 export const useTheme = () => {
   const { store, state } = useColorMode({ disableTransition: false })
@@ -12,6 +12,16 @@ export const useTheme = () => {
       store.value = 'dark'
     }
   }
+
+  watchEffect(() => {
+    if (import.meta.env.SSR) return
+
+    if (isDark.value) {
+      document.documentElement.classList.add('dark')
+      return
+    }
+    document.documentElement.classList.remove('dark')
+  })
 
   const toggleThemeWithTransition = async (event: MouseEvent | TouchEvent) => {
     if (!document.startViewTransition) {
