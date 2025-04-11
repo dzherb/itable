@@ -11,20 +11,20 @@ describe('authService', () => {
     vi.resetAllMocks()
   })
 
-  it('should store and retrieve tokens from localStorage', () => {
+  it('stores and retrieves tokens from localStorage', () => {
     authService.setTokens({ accessToken: '123', refreshToken: '321' })
     expect(authService.getAccessToken()).toBe('123')
     expect(authService.getRefreshToken()).toBe('321')
   })
 
-  it('should remove token on clearTokens', () => {
+  it('removes token on clearTokens', () => {
     authService.setTokens({ accessToken: '123', refreshToken: '321' })
     authService.clearTokens()
     expect(authService.getAccessToken()).toBeNull()
     expect(authService.getRefreshToken()).toBeNull()
   })
 
-  it('should refresh token correctly', async () => {
+  it('refreshes token correctly', async () => {
     authService.setTokens({ accessToken: 'old_access_token', refreshToken: 'old_refresh_token' })
 
     const accessToken = 'new_access_token'
@@ -40,14 +40,14 @@ describe('authService', () => {
     expect(tokens.refreshToken).toBe(refreshToken)
   })
 
-  it('should throw on failed refresh', async () => {
+  it('throws on failed refresh', async () => {
     authService.setTokens({ accessToken: '123', refreshToken: '321' })
     ;(fetch as Mock).mockResolvedValue({ ok: false })
 
     await expect(authService.refreshTokens()).rejects.toThrow('Tokens refresh failed')
   })
 
-  it('should throw on refresh attempt with no refresh token available', async () => {
+  it('throws on refresh attempt with no refresh token available', async () => {
     ;(fetch as Mock).mockResolvedValue({ ok: false })
 
     await expect(authService.refreshTokens()).rejects.toThrow('No refresh token available')
@@ -61,7 +61,7 @@ describe('authentication', () => {
     setActivePinia(createPinia())
   })
 
-  it('should login and store tokens', async () => {
+  it('logins and stores tokens', async () => {
     ;(fetch as Mock).mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ access_token: '123', refresh_token: '321' }),
@@ -74,7 +74,7 @@ describe('authentication', () => {
     expect(authService.getRefreshToken()).toBe('321')
   })
 
-  it('should throw on login with invalid credentials', async () => {
+  it('throws on login with invalid credentials', async () => {
     ;(fetch as Mock).mockResolvedValue({
       ok: false,
       status: 401,
