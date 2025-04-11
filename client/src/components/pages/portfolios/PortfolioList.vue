@@ -1,6 +1,6 @@
 <template>
   <ListContainer>
-    <PortfolioItem name="Портфель 1" :total="500000" v-for="_ in 2" />
+    <PortfolioItem name="Портфель 1" :total="500000" v-for="i in 2" :key="i" />
     <CreatePlug class="mt-4" />
   </ListContainer>
 </template>

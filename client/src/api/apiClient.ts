@@ -1,4 +1,4 @@
-import { clearTokens, getAccessToken, refreshToken } from './authService'
+import { clearTokens, getAccessToken, refreshTokens } from './authService'
 
 interface FetchOptions extends RequestInit {
   _retry?: boolean
@@ -69,21 +69,22 @@ export const apiFetch = async (
     isRefreshing = true
 
     try {
-      const newToken = await refreshToken()
+      const newAccessToken = (await refreshTokens()).accessToken
       isRefreshing = false
-      resolveQueue(null, newToken)
+      resolveQueue(null, newAccessToken)
 
       return apiFetch(input, {
         ...options,
         headers: {
           ...headers,
-          Authorization: `Bearer ${newToken}`,
+          Authorization: `Bearer ${newAccessToken}`,
         },
       })
     } catch (err) {
       isRefreshing = false
       resolveQueue(err as Error)
       clearTokens()
+      // todo redirect to login?
       throw err
     }
   }

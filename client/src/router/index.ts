@@ -71,7 +71,7 @@ const newRouter = () => {
     }
   })
 
-  router.afterEach((to, from) => {
+  router.afterEach((to, _) => {
     if (!to.hash && !import.meta.env.SSR) {
       done()
     }

@@ -1,6 +1,6 @@
 <template>
   <ListContainer>
-    <TableItem v-for="_ in 4" />
+    <TableItem v-for="i in 4" :key="i" />
     <CreatePlug class="mt-4" />
   </ListContainer>
 </template>

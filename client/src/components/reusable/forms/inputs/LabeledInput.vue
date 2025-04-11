@@ -3,7 +3,7 @@
     <label
       class="text-sm font-bold text-primary-400 select-none dark:text-primary-200"
       v-if="label"
-      :for="String($attrs?.name)"
+      :for="$attrs?.name as string"
     >
       {{ label }}
     </label>

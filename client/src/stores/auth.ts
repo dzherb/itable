@@ -20,10 +20,10 @@ export const useAuthStore = defineStore('auth', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
-          password
-        })
+          password,
+        }),
       },
-      false
+      false,
     )
     const data: TokenPairResponse = await response.json()
     const tokens: TokenPair = {
@@ -40,11 +40,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchProfile() {
-    const res = await apiFetch('/api/users/me/', {}, false)
-    if (res.ok) {
-      user.value = await res.json()
+    try {
+      const response = await apiFetch('/api/users/me/', {}, false)
+      user.value = await response.json()
       isAuthenticated.value = true
-    } else {
+    } catch {
       isAuthenticated.value = false
     }
   }

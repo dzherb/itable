@@ -29,7 +29,7 @@ export const clearTokens = (): void => {
   localStorage.removeItem(REFRESH_KEY)
 }
 
-export const refreshToken = async (): Promise<string> => {
+export const refreshTokens = async (): Promise<TokenPair> => {
   const token = getRefreshToken()
   if (!token) throw new Error('No refresh token available')
 
@@ -39,10 +39,10 @@ export const refreshToken = async (): Promise<string> => {
     body: JSON.stringify({ refreshToken: token }),
   })
 
-  if (!res.ok) throw new Error('Refresh token failed')
+  if (!res.ok) throw new Error('Tokens refresh failed')
 
   const data: TokenPairResponse = await res.json()
   const tokens: TokenPair = { accessToken: data.access_token, refreshToken: data.refresh_token }
   setTokens(tokens)
-  return tokens.accessToken
+  return tokens
 }
