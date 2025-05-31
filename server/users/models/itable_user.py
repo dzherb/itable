@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 import typing
 
 from django.contrib.auth.hashers import make_password
@@ -62,8 +61,8 @@ class ItableUser(AbstractUser):
 
     objects: typing.ClassVar[UserManager['ItableUser']] = ItableUserManager()
 
-    USERNAME_FIELD: typing.ClassVar[str] = 'email'
-    REQUIRED_FIELDS: typing.ClassVar[Iterable[str]] = []
+    USERNAME_FIELD: str = 'email'
+    REQUIRED_FIELDS: typing.ClassVar[list[str]] = []
 
     JWT_FABRIC: JWT = PyJWT()
 

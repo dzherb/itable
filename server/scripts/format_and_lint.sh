@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-ruff format
-ruff check --fix
-dotenv-linter ../.env.example ../.env
+uv run ruff format
+uv run ruff check --fix
+uv run dotenv-linter ../.env.example ../.env

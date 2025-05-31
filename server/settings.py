@@ -9,9 +9,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BASE_DIR = Path(__file__).resolve().parent
-
 TRUE_VALUES = ('true', 'y')
+
+BASE_DIR = Path(__file__).resolve().parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
@@ -99,11 +99,8 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 LANGUAGE_CODE = 'en'
-
 TIME_ZONE = 'Europe/Moscow'
-
 USE_I18N = True
-
 USE_TZ = True
 
 STATIC_URL = '/static/'
@@ -122,7 +119,6 @@ LOGGING_CONFIG = 'logging_config.setup_logging.setup_logging'
 # Disable logging while running tests
 if len(sys.argv) > 1 and sys.argv[1] == 'test':
     logging.disable(logging.CRITICAL)
-
 
 RUN_BACKGROUND_TASKS = os.getenv('RUN_BACKGROUND_TASKS', 'y') in TRUE_VALUES
 

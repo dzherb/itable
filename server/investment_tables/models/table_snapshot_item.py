@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 import typing
 
 from django.core.exceptions import ValidationError
@@ -24,7 +23,7 @@ class TableSnapshotItem(CreatedUpdatedAbstractModel, models.Model):
     coefficient = models.FloatField(default=1)
 
     class Meta(TypedModelMeta):
-        unique_together: typing.ClassVar[Sequence[str]] = (
+        unique_together: typing.ClassVar[tuple[tuple[str, str]]] = (
             ('snapshot', 'template_item'),
         )
         constraints: typing.ClassVar[list[models.BaseConstraint]] = [
