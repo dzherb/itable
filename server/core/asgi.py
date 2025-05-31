@@ -20,7 +20,7 @@ application = typing.cast(ASGI3Application, get_asgi_application())
 
 @asynccontextmanager
 async def tasks_scheduler_lifespan() -> AsyncIterator[None]:
-    from tasks_scheduler.scheduler import scheduler
+    from tasks.scheduler import scheduler
 
     scheduler.start()
     yield
