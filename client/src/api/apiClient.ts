@@ -4,7 +4,7 @@ interface FetchOptions extends RequestInit {
   _retry?: boolean
 }
 
-interface annotatedError extends Error {
+interface AnnotatedError extends Error {
   status?: number
   data?: unknown
 }
@@ -91,7 +91,7 @@ export const apiFetch = async (
 
   if (!response.ok) {
     const errData = await response.json().catch(() => ({}))
-    const err: annotatedError = new Error(response.statusText || 'Request failed')
+    const err: AnnotatedError = new Error(response.statusText || 'Request failed')
     err.status = response.status
     err.data = errData
     throw err

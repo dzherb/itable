@@ -33,15 +33,15 @@ export const refreshTokens = async (): Promise<TokenPair> => {
   const token = getRefreshToken()
   if (!token) throw new Error('No refresh token available')
 
-  const res = await fetch('/api/auth/refresh/', {
+  const response = await fetch('/api/auth/refresh/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refreshToken: token }),
   })
 
-  if (!res.ok) throw new Error('Tokens refresh failed')
+  if (!response.ok) throw new Error('Tokens refresh failed')
 
-  const data: TokenPairResponse = await res.json()
+  const data: TokenPairResponse = await response.json()
   const tokens: TokenPair = { accessToken: data.access_token, refreshToken: data.refresh_token }
   setTokens(tokens)
   return tokens
