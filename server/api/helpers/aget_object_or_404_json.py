@@ -30,10 +30,7 @@ async def aget_object_or_404_json[T: models.Model](
         object_type: type[T] | str | None = None
         if object_error_name:
             object_type = object_error_name
-        elif isinstance(source, models.Manager) or isinstance(
-            source,
-            models.QuerySet,
-        ):
+        elif isinstance(source, (models.Manager, models.QuerySet)):
             object_type = source.model
         elif issubclass(source, models.Model):
             object_type = source

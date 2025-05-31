@@ -82,7 +82,4 @@ class PyJWTPayloadChecker(JWTPayloadChecker):
     def is_active(self, payload: TokenPayload) -> bool:
         now = timezone.now()
         timestamp = payload['exp']
-        if make_aware(dt.datetime.fromtimestamp(timestamp)) < now:
-            return False
-
-        return True
+        return make_aware(dt.datetime.fromtimestamp(timestamp)) >= now

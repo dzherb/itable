@@ -42,7 +42,10 @@ class Security(CreatedUpdatedAbstractModel, models.Model):
 
         try:
             security = await cls.objects.acreate(ticker=ticker)
-            logger.info(f'Security with ticker {ticker} is created from MOEX')
+            logger.info(
+                'Security is created from MOEX',
+                extra={'ticker': ticker},
+            )
             return security
         except IntegrityError:
             return None

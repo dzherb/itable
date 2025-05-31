@@ -75,14 +75,14 @@ class JSONLoggingTestCase(TestCase):
         self.assertEqual(log['message'], 'test message')
         self.assertEqual(len(log.keys()), len(expected_fields))
 
-        for field in log.keys():
+        for field in log:
             self.assertIn(field, expected_fields)
 
     def test_json_log_can_contain_exception_traceback(self):
         try:
             1 / 0  # noqa: B018
         except ZeroDivisionError:
-            self.logger.error('1/0 exception', exc_info=True)
+            self.logger.exception('1/0 exception')
 
         log = self._get_last_log_from_stream()
 

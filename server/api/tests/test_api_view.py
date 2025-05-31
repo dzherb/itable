@@ -1,3 +1,4 @@
+# ruff: noqa: PLR2004
 import asyncio
 import dataclasses
 from http import HTTPStatus

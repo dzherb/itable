@@ -34,9 +34,8 @@ class IMOEXProvider(BaseMOEX, IndexProviderProtocol):
             async with self:
                 await self._collect_weights()
         except Exception:
-            logger.error(
+            logger.exception(
                 'Unexpected error while collecting IMOEX index weights',
-                exc_info=True,
             )
             raise
 

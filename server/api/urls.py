@@ -20,8 +20,8 @@ urlpatterns = [
         include(
             [
                 path('me/', views.users.me, name='me'),
-            ]
-        )
+            ],
+        ),
     ),
     path(
         'portfolios/',

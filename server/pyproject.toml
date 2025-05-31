@@ -27,6 +27,73 @@ dev = [
     "ruff>=0.9.6",
 ]
 
+[tool.ruff]
+extend-exclude = [
+    "migrations",
+    "static",
+    "media",
+]
+line-length = 79
+target-version = "py313"
+
+[tool.ruff.lint]
+select = [
+    "FAST", # FastAPI
+    "A",    # flake8-builtins
+    "ASYNC",# flake8-async
+    "B",    # flake8-bugbear
+    "LOG",  # flake8-logging
+    "G",    # flake8-logging-format
+    "RUF",  # Ruff-specific rules
+    "PL",   # Pylint
+    "C90",  # mccabe
+    "SIM",  # flake8-simplify
+    "RET",  # flake8-return
+    "F",    # Pyflakes
+    "E",    # pcodestyle
+    "I",    # isort
+    "N",    # pep8-naming
+    "B",    # flake8-bugbear
+    "A",    # flake8-builtins
+    "COM",  # flake8-commas
+    "C4",   # flake8-comprehensions
+    "DJ",   # flake8-django
+    "ISC",  # flake8-implicit-str-concat
+    "ICN",  # flake8-import-conventions
+    "T20",  # flake8-print
+    "Q",    # flake8-quotes
+    "RET",  # flake8-return
+    "FIX",  # flake8-fixme
+    "ERA",  # eradicate
+]
+
+ignore = [
+    "PTH123",
+    "F403",
+    "FIX002",
+    "SIM105",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "api",
+    "users",
+    "investment_tables",
+    "exchange",
+    "portfolio",
+    "utils",
+    "tasks_scheduler",
+]
+
+force-sort-within-sections = true
+order-by-type = false
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single"
+
+[tool.ruff.format]
+quote-style = "single"
+
 [tool.mypy]
 plugins = "mypy_django_plugin.main"
 strict = true

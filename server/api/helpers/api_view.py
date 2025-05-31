@@ -118,7 +118,7 @@ def api_view(
 ) -> _ApiView: ...
 
 
-def api_view[T: HttpRequest](
+def api_view[T: HttpRequest](  # noqa: PLR0913
     view_function: ApiViewFunction[T] | None = None,
     /,
     *,

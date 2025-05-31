@@ -1,3 +1,6 @@
+from collections.abc import Sequence
+import typing
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django_stubs_ext.db.models import TypedModelMeta
@@ -21,8 +24,10 @@ class TableSnapshotItem(CreatedUpdatedAbstractModel, models.Model):
     coefficient = models.FloatField(default=1)
 
     class Meta(TypedModelMeta):
-        unique_together = (('snapshot', 'template_item'),)
-        constraints = [
+        unique_together: typing.ClassVar[Sequence[str]] = (
+            ('snapshot', 'template_item'),
+        )
+        constraints: typing.ClassVar[list[models.BaseConstraint]] = [
             models.CheckConstraint(
                 name='coefficient_is_not_negative',
                 condition=models.Q(coefficient__gte=0),

@@ -67,7 +67,6 @@ class BaseMOEX:
             timeout=self._timeout,
         )
         await self._session.__aenter__()
-        return
 
     async def __aexit__(
         self,
@@ -111,9 +110,8 @@ class MOEX(BaseMOEX, StockMarketProtocol):
             async with self:
                 return await self._get_securities()
         except Exception:
-            logger.error(
+            logger.exception(
                 'Unexpected error while collecting securities from MOEX',
-                exc_info=True,
             )
             raise
 

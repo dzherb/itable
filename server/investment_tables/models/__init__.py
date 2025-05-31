@@ -5,7 +5,7 @@ from .table_template_item import TableTemplateItem
 
 __all__ = (
     'TableSnapshot',
+    'TableSnapshotItem',
     'TableTemplate',
     'TableTemplateItem',
-    'TableSnapshotItem',
 )

@@ -22,8 +22,7 @@ class Dispatcher:
             setattr(self, method_name.lower(), handler)
 
         allowed_methods: Sequence[Methods] = tuple(
-            typing.cast(Methods, method.upper())
-            for method in method_handlers.keys()
+            typing.cast(Methods, method.upper()) for method in method_handlers
         )
         self._methods_checker = MethodsChecker(allowed_methods)
 

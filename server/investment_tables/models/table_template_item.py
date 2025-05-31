@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 import typing
 
 from django.db import models
@@ -31,8 +32,10 @@ class TableTemplateItem(CreatedUpdatedAbstractModel, models.Model):
     objects = TableTemplateItemQuerySet.as_manager()
 
     class Meta(TypedModelMeta):
-        unique_together = (('template', 'security'),)
-        constraints = [
+        unique_together: typing.ClassVar[Sequence[str]] = (
+            ('template', 'security'),
+        )
+        constraints: typing.ClassVar[list[models.BaseConstraint]] = [
             models.CheckConstraint(
                 name='weight_limit',
                 condition=models.Q(weight__gte=0, weight__lte=100),
