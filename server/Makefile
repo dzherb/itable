@@ -13,3 +13,7 @@ fmt:
 .PHONY: typecheck
 typecheck:
 	@uv run mypy .
+
+.PHONY: clean
+clean:
+	@rm -rf .coverage ./htmlcov ./logs
