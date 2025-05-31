@@ -5,8 +5,8 @@ import logging.config
 from django.conf import settings
 from django.test import TestCase
 
-from logging_config import setup_logging
-from logging_config.formatters import _LogDict, JSONFormatter
+from logger import setup
+from logger.formatters import _LogDict, JSONFormatter
 
 
 class JSONLoggingTestCase(TestCase):
@@ -54,7 +54,7 @@ class JSONLoggingTestCase(TestCase):
     def tearDown(self):
         super().tearDown()
         self.stream.close()
-        setup_logging(settings.BASE_DIR)
+        setup(settings.BASE_DIR)
         logging.disable(logging.CRITICAL)
 
     def test_json_log_fields(self):

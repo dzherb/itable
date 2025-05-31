@@ -5,8 +5,8 @@ import logging.handlers
 from pathlib import Path
 
 
-def setup_logging(base_dir: Path) -> None:
-    config_file = base_dir / 'logging_config' / 'config.json'
+def setup(base_dir: Path) -> None:
+    config_file = base_dir / 'logger' / 'config.json'
     with open(config_file) as f_in:
         config = json.load(f_in)
 

@@ -113,7 +113,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Unfortunately Django doesn't give much flexibility
 # with the LOGGING_CONFIG callable path.
 LOGGING = BASE_DIR
-LOGGING_CONFIG = 'logging_config.setup_logging.setup_logging'
+LOGGING_CONFIG = 'logger.setup.setup'
 
 # Disable logging while running tests
 if len(sys.argv) > 1 and sys.argv[1] == 'test':

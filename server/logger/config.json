@@ -7,7 +7,7 @@
       "datefmt": "%Y-%m-%dT%H:%M:%S%z"
     },
     "json": {
-      "()": "logging_config.formatters.JSONFormatter",
+      "()": "logger.formatters.JSONFormatter",
       "fields_to_add": {
         "level": "levelname",
         "message": "message",
@@ -25,7 +25,7 @@
       "()": "django.utils.log.RequireDebugFalse"
     },
     "non_error_filter": {
-      "()": "logging_config.filters.NonErrorFilter"
+      "()": "logger.filters.NonErrorFilter"
     }
   },
   "handlers": {
@@ -53,7 +53,7 @@
       "delay": true
     },
     "queue_handler": {
-      "class": "logging_config.handlers.JSONAwareQueueHandler",
+      "class": "logger.handlers.JSONAwareQueueHandler",
       "handlers": [
         "file_json",
         "stderr",
