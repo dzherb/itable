@@ -26,11 +26,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'users.apps.UsersConfig',
-    'investment_tables.apps.InvestmentTablesConfig',
-    'portfolio.apps.PortfolioConfig',
-    'exchange.apps.ExchangeConfig',
-    'utils.apps.UtilsConfig',
+    'apps.users.apps.UsersConfig',
+    'apps.investment_tables.apps.InvestmentTablesConfig',
+    'apps.portfolios.apps.PortfolioConfig',
+    'apps.exchange.apps.ExchangeConfig',
     'api.apps.ApiConfig',
 ]
 
@@ -39,7 +38,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'users.authentication.middleware.JWTAuthenticationMiddleware',
+    'apps.users.authentication.middleware.JWTAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -94,7 +93,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = 'users.ItableUser'
 AUTHENTICATION_BACKENDS = [
-    'users.authentication.backends.JWTAuthenticationBackend',
+    'apps.users.authentication.backends.JWTAuthenticationBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 

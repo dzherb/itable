@@ -17,8 +17,8 @@ from api.helpers.model_converters import (
 )
 from api.helpers.schema_mixins import ValidateIdFieldsMixin
 from api.helpers.strings import undo_camel_case
-from exchange.models import Security
-from portfolio.models import Portfolio, PortfolioItem
+from apps.exchange.models import Security
+from apps.portfolios.models import Portfolio, PortfolioItem
 
 User = get_user_model()
 

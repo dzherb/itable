@@ -18,7 +18,7 @@ from api.typedefs import (
     AuthenticatedPopulatedSchemaRequest,
     AuthenticatedRequest,
 )
-from portfolio.models import Portfolio
+from apps.portfolios.models import Portfolio
 
 logger = logging.getLogger('api')
 

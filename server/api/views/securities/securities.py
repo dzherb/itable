@@ -4,7 +4,7 @@ from django.http import HttpResponse, JsonResponse
 
 from api.helpers.api_view import api_view
 from api.typedefs import AuthenticatedPopulatedSchemaRequest
-from exchange.services.stock_markets import MOEX
+from apps.exchange.services.stock_markets import MOEX
 
 
 @dataclasses.dataclass

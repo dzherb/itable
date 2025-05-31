@@ -1,7 +1,7 @@
 from asgiref.sync import async_to_sync
 
-from users.authentication.jwt import TokenPair
-from users.models import ItableUser
+from apps.users.authentication.jwt import TokenPair
+from apps.users.models import ItableUser
 
 
 def generate_auth_header(user: ItableUser) -> dict[str, str]:

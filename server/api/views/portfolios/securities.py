@@ -18,8 +18,8 @@ from api.typedefs import (
     AuthenticatedPopulatedSchemaRequest,
     AuthenticatedRequest,
 )
-from exchange.models import Security
-from portfolio.models import PortfolioItem
+from apps.exchange.models import Security
+from apps.portfolios.models import PortfolioItem
 
 logger = logging.getLogger('api')
 

@@ -8,13 +8,13 @@ from django.urls import reverse
 from parameterized import parameterized
 
 from api.tests.helpers import generate_auth_header
-from exchange.models import Security
-from investment_tables.models import (
+from apps.exchange.models import Security
+from apps.investment_tables.models import (
     TableSnapshot,
     TableSnapshotItem,
     TableTemplate,
 )
-from portfolio.models import Portfolio
+from apps.portfolios.models import Portfolio
 from utils.db_helpers import AsyncAtomic
 
 User = get_user_model()

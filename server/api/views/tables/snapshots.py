@@ -19,8 +19,8 @@ from api.typedefs import (
     AuthenticatedPopulatedSchemaRequest,
     AuthenticatedRequest,
 )
-from investment_tables.models import TableSnapshot, TableTemplate
-from portfolio.models import Portfolio
+from apps.investment_tables.models import TableSnapshot, TableTemplate
+from apps.portfolios.models import Portfolio
 
 
 @dataclasses.dataclass

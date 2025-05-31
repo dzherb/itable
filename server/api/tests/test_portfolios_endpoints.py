@@ -9,10 +9,10 @@ from django.urls import reverse
 from parameterized import parameterized
 
 from api.tests.helpers import generate_auth_header
-from exchange.models import Security
-from exchange.services.stock_markets import MOEX
-from exchange.tests.test_moex_integration import MockISSClientFactory
-from portfolio.models import Portfolio, PortfolioItem
+from apps.exchange.models import Security
+from apps.exchange.services.stock_markets import MOEX
+from apps.exchange.tests.test_moex_integration import MockISSClientFactory
+from apps.portfolios.models import Portfolio, PortfolioItem
 from utils.db_helpers import AsyncAtomic
 
 User = get_user_model()
@@ -344,7 +344,7 @@ class PortfolioSecurityTestCase(TestCase):
         error = json.loads(response.content)['error']
         self.assertEqual(error, 'portfolio not found')
 
-    @mock.patch('exchange.models.security.MOEX')
+    @mock.patch('apps.exchange.models.security.MOEX')
     async def test_user_cant_add_nonexistent_security(self, mock_moex):
         # Use mock because if there is no such security in db,
         # we attempt to create it from MOEX

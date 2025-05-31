@@ -7,13 +7,13 @@ from api.helpers.api_view import api_view
 from api.typedefs import (
     PopulatedSchemaRequest,
 )
-from users.authentication.exceptions import InvalidTokenError
-from users.authentication.jwt import (
+from apps.users.authentication.exceptions import InvalidTokenError
+from apps.users.authentication.jwt import (
     PyJWT,
     PyJWTPayloadChecker,
     TokenPair,
 )
-from users.models import ItableUser
+from apps.users.models import ItableUser
 
 User = get_user_model()
 

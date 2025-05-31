@@ -10,8 +10,8 @@ from django.urls import reverse
 from django.utils import timezone
 
 from api.tests.helpers import agenerate_auth_header
-from users.authentication.jwt import TokenPair
-from users.models import ItableUser
+from apps.users.authentication.jwt import TokenPair
+from apps.users.models import ItableUser
 
 User = get_user_model()
 
@@ -123,7 +123,9 @@ class AuthScreenplaysTestCase(TestCase):
 
     async def test_access_token_expires(self):
         token_pair = await self._login()
-        with mock.patch('users.authentication.jwt.timezone') as mock_timezone:
+        with mock.patch(
+            'apps.users.authentication.jwt.timezone',
+        ) as mock_timezone:
             mock_timezone.now.return_value = (
                 timezone.now() + settings.ACCESS_TOKEN_TIME_TO_LIVE
             )
@@ -153,7 +155,9 @@ class AuthScreenplaysTestCase(TestCase):
 
     async def test_can_refresh_after_access_token_expiration(self):
         token_pair = await self._login()
-        with mock.patch('users.authentication.jwt.timezone') as mock_timezone:
+        with mock.patch(
+            'apps.users.authentication.jwt.timezone',
+        ) as mock_timezone:
             mock_timezone.now.return_value = (
                 timezone.now() + settings.ACCESS_TOKEN_TIME_TO_LIVE
             )
@@ -175,7 +179,9 @@ class AuthScreenplaysTestCase(TestCase):
 
     async def test_cant_refresh_after_refresh_token_expiration(self):
         token_pair = await self._login()
-        with mock.patch('users.authentication.jwt.timezone') as mock_timezone:
+        with mock.patch(
+            'apps.users.authentication.jwt.timezone',
+        ) as mock_timezone:
             mock_timezone.now.return_value = (
                 timezone.now() + settings.REFRESH_TOKEN_TIME_TO_LIVE
             )

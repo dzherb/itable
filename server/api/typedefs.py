@@ -3,7 +3,7 @@ import typing
 
 from django.http import HttpRequest, HttpResponse
 
-from users.models import ItableUser
+from apps.users.models import ItableUser
 
 if typing.TYPE_CHECKING:
     from _typeshed import DataclassInstance

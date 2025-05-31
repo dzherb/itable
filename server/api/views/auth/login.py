@@ -7,8 +7,8 @@ from django.http import HttpResponse, JsonResponse
 
 from api.helpers.api_view import api_view
 from api.request_checkers.schema_checker import PopulatedSchemaRequest
-from users.authentication.jwt import TokenPair
-from users.models import ItableUser
+from apps.users.authentication.jwt import TokenPair
+from apps.users.models import ItableUser
 
 logger = logging.getLogger('api')
 
