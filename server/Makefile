@@ -1,3 +1,7 @@
+.PHONY: run
+run:
+	@uv run manage.py runserver
+
 .PHONY: test
 test:
 	@./scripts/test.sh

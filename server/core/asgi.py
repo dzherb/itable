@@ -13,7 +13,7 @@ from utils.asgi.middlewares import LifespanMiddleware
 
 logger = logging.getLogger(__name__)
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 
 application = typing.cast(ASGI3Application, get_asgi_application())
 
