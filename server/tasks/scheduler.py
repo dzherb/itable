@@ -1,6 +1,6 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from tasks_scheduler import tasks
+from tasks import tasks
 
 scheduler = AsyncIOScheduler()
 
