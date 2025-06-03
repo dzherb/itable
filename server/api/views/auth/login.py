@@ -5,7 +5,7 @@ from django.contrib import auth
 from django.http import HttpResponse, JsonResponse
 from pydantic import BaseModel
 
-from api.helpers.api_view import api_view
+from api.core.api_view import api_view
 from api.request_checkers.schema_checker import PopulatedSchemaRequest
 from apps.users.authentication.jwt import TokenPair
 from apps.users.models import ItableUser

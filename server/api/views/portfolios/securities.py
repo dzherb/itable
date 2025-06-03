@@ -7,17 +7,17 @@ import typing
 from django.db import IntegrityError
 from django.http import HttpResponse, JsonResponse
 
+from api.core.api_view import api_view
 from api.exceptions import NotFoundError
-from api.helpers import aget_object_or_404_json
-from api.helpers.api_view import api_view
-from api.helpers.dispatcher import create_dispatcher
-from api.helpers.model_converters import ModelToDictConverter
 from api.permissions import IsPortfolioOwner
 from api.request_checkers.schema_checker import PopulatedSchemaRequest
 from api.typedefs import (
     AuthenticatedPopulatedSchemaRequest,
     AuthenticatedRequest,
 )
+from api.utils import aget_object_or_404_json
+from api.utils.converters import ModelToDictConverter
+from api.utils.dispatcher import create_dispatcher
 from apps.exchange.models import Security
 from apps.portfolios.models import PortfolioItem
 

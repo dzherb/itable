@@ -2,7 +2,7 @@ import dataclasses
 
 from django.http import HttpResponse, JsonResponse
 
-from api.helpers.api_view import api_view
+from api.core.api_view import api_view
 from api.typedefs import AuthenticatedPopulatedSchemaRequest
 from services.exchange.stock_markets.moex import MOEX
 

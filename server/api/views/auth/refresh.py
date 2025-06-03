@@ -3,7 +3,7 @@ import dataclasses
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse, JsonResponse
 
-from api.helpers.api_view import api_view
+from api.core.api_view import api_view
 from api.typedefs import (
     PopulatedSchemaRequest,
 )

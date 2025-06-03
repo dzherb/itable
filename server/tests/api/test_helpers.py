@@ -10,13 +10,13 @@ from django.test import RequestFactory, TestCase
 from django.utils import timezone
 from parameterized import parameterized
 
-from api.helpers import Dispatcher
-from api.helpers.api_view import api_view
-from api.helpers.model_converters import (
+from api.core.api_view import api_view
+from api.utils import Dispatcher
+from api.utils.converters import (
     ModelToDataclassConverter,
 )
-from api.helpers.schema_mixins import ValidateIdFieldsMixin
-from api.helpers.strings import undo_camel_case
+from api.utils.schema_mixins import ValidateIdFieldsMixin
+from api.utils.strings import undo_camel_case
 from apps.exchange.models import Security
 from apps.portfolios.models import Portfolio, PortfolioItem
 

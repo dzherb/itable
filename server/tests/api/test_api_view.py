@@ -10,10 +10,10 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.test import AsyncRequestFactory, TestCase
 from parameterized import param, parameterized
 
-from api.helpers import aget_object_or_404_json
-from api.helpers.api_view import api_view, Checker
+from api.core.api_view import api_view, Checker
 from api.permissions.permission_protocol import Permission
 from api.request_checkers.schema_checker import SchemaValidationError
+from api.utils import aget_object_or_404_json
 
 User = get_user_model()
 

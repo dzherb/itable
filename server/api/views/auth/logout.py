@@ -2,7 +2,7 @@ import logging
 
 from django.http import HttpRequest, HttpResponse, JsonResponse
 
-from api.helpers.api_view import api_view
+from api.core.api_view import api_view
 from api.typedefs import AuthenticatedRequest
 
 logger = logging.getLogger('api')

@@ -2,7 +2,7 @@ from functools import lru_cache
 
 from django.db import models
 
-from api.helpers.strings import undo_camel_case
+from api.utils.strings import undo_camel_case
 
 
 class APIError(Exception):

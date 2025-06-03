@@ -3,8 +3,8 @@ from typing import override
 
 from django.http import HttpRequest
 
-from api.helpers.aget_object_or_404_json import aget_object_or_404_json
 from api.permissions.permission_protocol import Permission
+from api.utils.shortcuts import aget_object_or_404_json
 from apps.portfolios.models import Portfolio
 
 

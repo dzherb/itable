@@ -4,20 +4,20 @@ import datetime
 from django.db import models
 from django.http import HttpResponse, JsonResponse
 
-from api.helpers import aget_object_or_404_json
-from api.helpers.api_view import api_view
-from api.helpers.dispatcher import create_dispatcher
-from api.helpers.model_converters import (
-    ModelToDataclassConverter,
-    ModelToDictConverter,
-)
-from api.helpers.schema_mixins import (
-    ValidateIdFieldsMixin,
-    ValidateNameSchemaMixin,
-)
+from api.core.api_view import api_view
 from api.typedefs import (
     AuthenticatedPopulatedSchemaRequest,
     AuthenticatedRequest,
+)
+from api.utils import aget_object_or_404_json
+from api.utils.converters import (
+    ModelToDataclassConverter,
+    ModelToDictConverter,
+)
+from api.utils.dispatcher import create_dispatcher
+from api.utils.schema_mixins import (
+    ValidateIdFieldsMixin,
+    ValidateNameSchemaMixin,
 )
 from apps.investment_tables.models import TableSnapshot, TableTemplate
 from apps.portfolios.models import Portfolio

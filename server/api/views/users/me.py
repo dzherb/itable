@@ -2,9 +2,9 @@ import dataclasses
 
 from django.http import HttpResponse, JsonResponse
 
-from api.helpers.api_view import api_view
-from api.helpers.model_converters import ModelToDictConverter
+from api.core.api_view import api_view
 from api.typedefs import AuthenticatedRequest
+from api.utils.converters import ModelToDictConverter
 
 
 @dataclasses.dataclass
