@@ -10,9 +10,9 @@ from parameterized import parameterized
 
 from api.tests.helpers import generate_auth_header
 from apps.exchange.models import Security
-from apps.exchange.services.stock_markets import MOEX
 from apps.exchange.tests.test_moex_integration import MockISSClientFactory
 from apps.portfolios.models import Portfolio, PortfolioItem
+from services.exchange.stock_markets import MOEX
 from utils.db_helpers import AsyncAtomic
 
 User = get_user_model()

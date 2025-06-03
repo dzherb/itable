@@ -5,7 +5,7 @@ from .schema_checker import DataclassSchemaChecker
 
 __all__ = (
     'AuthenticationChecker',
+    'DataclassSchemaChecker',
     'MethodsChecker',
     'PermissionsChecker',
-    'DataclassSchemaChecker',
 )

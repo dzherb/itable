@@ -78,12 +78,12 @@ ignore = [
 [tool.ruff.lint.isort]
 known-first-party = [
     "api",
-    "users",
-    "investment_tables",
-    "exchange",
-    "portfolio",
+    "apps",
+    "core",
+    "logger",
+    "services",
     "utils",
-    "tasks_scheduler",
+    "tasks",
 ]
 
 force-sort-within-sections = true

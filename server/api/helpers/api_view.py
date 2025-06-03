@@ -1,6 +1,6 @@
 from collections.abc import Iterable, Sequence
-import functools
 from dataclasses import is_dataclass
+import functools
 from http import HTTPStatus
 import typing
 
@@ -11,9 +11,9 @@ from api import exceptions
 from api.permissions.permission_protocol import Permission
 from api.request_checkers import (
     AuthenticationChecker,
+    DataclassSchemaChecker,
     MethodsChecker,
     PermissionsChecker,
-    DataclassSchemaChecker,
 )
 from api.request_checkers.checker_protocol import Checker
 from api.request_checkers.methods_checker import Methods

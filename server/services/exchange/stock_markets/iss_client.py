@@ -4,9 +4,12 @@ from typing import override
 import aiohttp
 import aiomoex
 
+type WebQuery = aiomoex.client.WebQuery
+type TablesDict = aiomoex.TablesDict
+
 
 class ISSClient(typing.Protocol):
-    async def get(self) -> aiomoex.TablesDict:
+    async def get(self) -> TablesDict:
         pass
 
 
@@ -15,7 +18,7 @@ class ISSClientFactory(typing.Protocol):
         self,
         session: aiohttp.ClientSession,
         resource: str,
-        arguments: aiomoex.client.WebQuery | None = None,
+        arguments: WebQuery | None = None,
     ) -> ISSClient:
         pass
 
@@ -28,7 +31,7 @@ class ISSClientFactoryImpl(ISSClientFactory):
         self,
         session: aiohttp.ClientSession,
         resource: str,
-        arguments: aiomoex.client.WebQuery | None = None,
+        arguments: WebQuery | None = None,
     ) -> ISSClient:
         return aiomoex.ISSClient(
             session,

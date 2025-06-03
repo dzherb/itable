@@ -7,14 +7,16 @@ import aiomoex
 from circuitbreaker import CircuitBreakerError
 from django.test import TestCase
 
-from apps.exchange.services.stock_markets import MOEX
-from apps.exchange.services.stock_markets.moex import moex_circuit_breaker
-from apps.exchange.services.stock_markets.moex.iss_client import (
+from services.exchange.stock_markets.iss_client import (
     ISSClient,
     ISSClientFactory,
 )
-from apps.exchange.services.stock_markets.moex.moex import MOEXConnectionError
-from apps.exchange.services.synchronization.index_providers.imoex import (
+from services.exchange.stock_markets.moex import (
+    MOEX,
+    moex_circuit_breaker,
+    MOEXConnectionError,
+)
+from services.exchange.synchronization.index_providers.imoex import (
     IMOEXProvider,
 )
 

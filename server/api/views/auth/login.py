@@ -1,4 +1,3 @@
-import dataclasses
 from http import HTTPStatus
 import logging
 

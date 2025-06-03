@@ -5,22 +5,16 @@ from django.db import models
 
 from apps import investment_tables
 from apps.exchange.models import Security
-from apps.exchange.services.synchronization.index_providers import (
-    IndexProviderProtocol,
-    SecurityWeightDict,
-)
-from apps.exchange.services.synchronization.index_providers.imoex import (
+from apps.investment_tables.models import TableTemplate
+from services.exchange.synchronization.index_providers.imoex import (
     IMOEXProvider,
 )
-from apps.exchange.services.synchronization.index_synchronizer_protocol import (  # noqa: E501
+from services.exchange.synchronization.typedefs import (
+    IndexProviderProtocol,
     IndexSynchronizerProtocol,
+    SecurityWeightDictWithId,
 )
-from apps.investment_tables.models import TableTemplate
 from utils.db_helpers import aatomic
-
-
-class SecurityWeightDictWithId(SecurityWeightDict):
-    id: typing.NotRequired[int]
 
 
 @final

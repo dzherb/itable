@@ -1,4 +1,4 @@
-from apps.exchange.services.synchronization.imoex_synchronizer import (
+from services.exchange.synchronization.imoex_synchronizer import (
     IMOEXSynchronizer,
 )
 

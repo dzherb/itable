@@ -3,7 +3,7 @@ import typing
 
 from django.db import IntegrityError, models
 
-from apps.exchange.services.stock_markets import MOEX
+from services.exchange.stock_markets.moex import MOEX
 from utils.abstract_models import CreatedUpdatedAbstractModel
 
 logger = logging.getLogger('securities.models')

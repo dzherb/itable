@@ -1,10 +1,10 @@
 from django.test import TestCase
 
 from apps import investment_tables
-from apps.exchange.services.synchronization.imoex_synchronizer import (
+from services.exchange.synchronization.imoex_synchronizer import (
     IMOEXSynchronizer,
 )
-from apps.exchange.services.synchronization.index_providers import (
+from services.exchange.synchronization.typedefs import (
     IndexProviderProtocol,
     SecurityWeightDict,
 )
