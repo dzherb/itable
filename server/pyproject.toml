@@ -84,6 +84,7 @@ known-first-party = [
     "services",
     "utils",
     "tasks",
+    "tests",
 ]
 
 force-sort-within-sections = true
@@ -99,7 +100,7 @@ quote-style = "single"
 plugins = "mypy_django_plugin.main"
 strict = true
 check_untyped_defs = true
-exclude = ['.*/tests.*']
+exclude = ['tests.*']
 
 [tool.django-stubs]
 django_settings_module = "core.settings"

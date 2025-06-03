@@ -5,9 +5,9 @@ from django.contrib.auth import get_user_model
 from django.test import AsyncClient, TestCase
 from django.urls import reverse
 
-from api.tests.helpers import generate_auth_header
-from apps.exchange.tests.test_moex_integration import MockISSClientFactory
 from services.exchange.stock_markets import MOEX
+from tests.api.helpers import generate_auth_header
+from tests.services.exchange.test_moex_integration import MockISSClientFactory
 
 User = get_user_model()
 

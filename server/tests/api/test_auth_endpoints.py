@@ -9,9 +9,9 @@ from django.test import AsyncClient, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from api.tests.helpers import agenerate_auth_header
 from apps.users.authentication.jwt import TokenPair
 from apps.users.models import ItableUser
+from tests.api.helpers import agenerate_auth_header
 
 User = get_user_model()
 

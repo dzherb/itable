@@ -7,7 +7,6 @@ from django.test import AsyncClient, TestCase
 from django.urls import reverse
 from parameterized import parameterized
 
-from api.tests.helpers import generate_auth_header
 from apps.exchange.models import Security
 from apps.investment_tables.models import (
     TableSnapshot,
@@ -15,6 +14,7 @@ from apps.investment_tables.models import (
     TableTemplate,
 )
 from apps.portfolios.models import Portfolio
+from tests.api.helpers import generate_auth_header
 from utils.db_helpers import AsyncAtomic
 
 User = get_user_model()

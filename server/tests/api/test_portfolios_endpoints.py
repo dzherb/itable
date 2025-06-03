@@ -8,11 +8,11 @@ from django.test import AsyncClient, TestCase
 from django.urls import reverse
 from parameterized import parameterized
 
-from api.tests.helpers import generate_auth_header
 from apps.exchange.models import Security
-from apps.exchange.tests.test_moex_integration import MockISSClientFactory
 from apps.portfolios.models import Portfolio, PortfolioItem
 from services.exchange.stock_markets import MOEX
+from tests.api.helpers import generate_auth_header
+from tests.services.exchange.test_moex_integration import MockISSClientFactory
 from utils.db_helpers import AsyncAtomic
 
 User = get_user_model()

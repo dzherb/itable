@@ -3,8 +3,8 @@ from unittest import mock
 from django.test import TestCase
 
 from apps.exchange.models import Security
-from apps.exchange.tests.test_moex_integration import MockISSClientFactory
 from services.exchange.stock_markets import MOEX
+from tests.services.exchange.test_moex_integration import MockISSClientFactory
 
 
 class SecurityTestCase(TestCase):
