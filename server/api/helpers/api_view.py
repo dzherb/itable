@@ -1,9 +1,11 @@
 from collections.abc import Iterable, Sequence
 import functools
+from dataclasses import is_dataclass
 from http import HTTPStatus
 import typing
 
 from django.http import HttpRequest, HttpResponse, JsonResponse
+from pydantic import BaseModel
 
 from api import exceptions
 from api.permissions.permission_protocol import Permission
@@ -11,10 +13,11 @@ from api.request_checkers import (
     AuthenticationChecker,
     MethodsChecker,
     PermissionsChecker,
-    SchemaChecker,
+    DataclassSchemaChecker,
 )
 from api.request_checkers.checker_protocol import Checker
 from api.request_checkers.methods_checker import Methods
+from api.request_checkers.schema_checker import PydanticSchemaChecker
 from api.typedefs import ApiViewFunction, AsyncViewFunction
 
 
@@ -35,7 +38,7 @@ class _ApiView:
         self._request_schema = request_schema
 
         # Collect checkers on init so we don't have to
-        # do this on every decorated function call
+        # do this on each decorated function call
         self._all_checkers = self._get_checkers()
 
     def __call__[T: HttpRequest](
@@ -89,7 +92,10 @@ class _ApiView:
             checkers.append(AuthenticationChecker())
 
         if self._request_schema is not None:
-            checkers.append(SchemaChecker(self._request_schema))
+            if issubclass(self._request_schema, BaseModel):
+                checkers.append(PydanticSchemaChecker(self._request_schema))
+            elif is_dataclass(self._request_schema):
+                checkers.append(DataclassSchemaChecker(self._request_schema))
 
         if self._permissions is not None:
             checkers.append(PermissionsChecker(self._permissions))

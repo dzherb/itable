@@ -4,6 +4,7 @@ import logging
 
 from django.contrib import auth
 from django.http import HttpResponse, JsonResponse
+from pydantic import BaseModel
 
 from api.helpers.api_view import api_view
 from api.request_checkers.schema_checker import PopulatedSchemaRequest
@@ -13,8 +14,7 @@ from apps.users.models import ItableUser
 logger = logging.getLogger('api')
 
 
-@dataclasses.dataclass
-class UserCredentialsSchema:
+class UserCredentialsSchema(BaseModel):
     email: str
     password: str
 

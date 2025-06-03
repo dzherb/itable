@@ -62,7 +62,7 @@ class LoginCase(AuthTestsMixin, TestCase):
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         content = json.loads(response.content)
-        self.assertEqual(content, {'error': 'missing value for field "email"'})
+        self.assertEqual(content['error'][0]['msg'], 'Field required')
 
 
 class LogoutTestCase(AuthTestsMixin, TestCase):

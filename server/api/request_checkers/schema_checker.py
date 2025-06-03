@@ -8,6 +8,7 @@ from typing import override
 import dacite
 from dacite.types import is_optional
 from django.http import HttpRequest, HttpResponse, JsonResponse
+from pydantic import BaseModel, ValidationError
 
 from api.request_checkers.checker_protocol import Checker
 
@@ -15,7 +16,7 @@ if typing.TYPE_CHECKING:
     from _typeshed import DataclassInstance
 
 
-class PopulatedSchemaRequest[T: 'DataclassInstance'](HttpRequest):
+class PopulatedSchemaRequest[T: 'DataclassInstance' | BaseModel](HttpRequest):
     populated_schema: T
 
 
@@ -38,7 +39,7 @@ class _SchemaValidationRunner:
     def __init__(self, populated_schema: 'DataclassInstance'):
         self._populated_schema = populated_schema
 
-    async def run_validations(
+    async def run_validators(
         self,
         request: HttpRequest,
         *args: typing.Any,
@@ -86,7 +87,21 @@ class _SchemaValidationRunner:
         return not (is_optional(field_type) and field_value is None)
 
 
-class SchemaChecker[D: 'DataclassInstance'](Checker):
+class BaseSchemaChecker(Checker):
+    def _get_request_data(self, request: HttpRequest) -> dict[str, typing.Any]:
+        if request.method == 'GET':
+            return dict(request.GET)
+
+        # Is request.body a blocking I/O operation?
+        # Seems like currently there is no way to read it asynchronously.
+        try:
+            result = json.loads(request.body)
+            return typing.cast(dict[str, typing.Any], result)
+        except json.JSONDecodeError as e:
+            raise ValueError('request body contains invalid json') from e
+
+
+class DataclassSchemaChecker[D: 'DataclassInstance'](BaseSchemaChecker):
     def __init__(self, request_schema: type[D]):
         if not (
             is_dataclass(request_schema) and isinstance(request_schema, type)
@@ -112,7 +127,7 @@ class SchemaChecker[D: 'DataclassInstance'](Checker):
             )
             await _SchemaValidationRunner(
                 populated_schema=populated_schema,
-            ).run_validations(request, *args, **kwargs)
+            ).run_validators(request, *args, **kwargs)
 
             request = typing.cast(PopulatedSchemaRequest[D], request)
             request.populated_schema = populated_schema
@@ -131,21 +146,58 @@ class SchemaChecker[D: 'DataclassInstance'](Checker):
             self._error = str(e)
             return False
 
-    def _get_request_data(self, request: HttpRequest) -> dict[str, typing.Any]:
-        if request.method == 'GET':
-            return dict(request.GET)
-
-        # Is request.body a blocking I/O operation?
-        # Seems like currently there is no way to read it asynchronously.
-        try:
-            result = json.loads(request.body)
-            return typing.cast(dict[str, typing.Any], result)
-        except json.JSONDecodeError as e:
-            raise ValueError('request body contains invalid json') from e
-
     @override
     def on_failure_response(self) -> HttpResponse:
         return JsonResponse(
             data={'error': self._error},
+            status=self._response_status,
+        )
+
+
+class PydanticSchemaChecker[B: BaseModel](BaseSchemaChecker):
+    def __init__(self, request_schema: type[B]):
+        if not issubclass(request_schema, BaseModel):
+            raise TypeError('Expected a BaseModel subclass')
+
+        self._request_schema = request_schema
+        self._error: str | None = None
+        self._response_status: int = HTTPStatus.BAD_REQUEST
+
+    @override
+    async def check(
+        self,
+        request: HttpRequest,
+        *args: typing.Any,
+        **kwargs: typing.Any,
+    ) -> bool:
+        try:
+            request_data = self._get_request_data(request)
+        except ValueError as e:
+            self._error = json.dumps({'error': str(e)})
+            return False
+
+        try:
+            populated_schema = self._request_schema.model_validate(
+                request_data,
+            )
+        except ValidationError as e:
+            self._error = '{"error":' + e.json(include_url=False) + '}'
+            return False
+
+        request = typing.cast(PopulatedSchemaRequest[B], request)
+        request.populated_schema = populated_schema
+        return True
+
+    @override
+    def on_failure_response(self) -> HttpResponse:
+        if self._error is None:
+            return JsonResponse(
+                {'error': 'unknown'},
+                status=self._response_status,
+            )
+
+        return HttpResponse(
+            content=self._error.encode(),
+            content_type='application/json',
             status=self._response_status,
         )
