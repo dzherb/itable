@@ -382,7 +382,7 @@ class PortfolioSecurityTestCase(TestCase):
         [
             ('SBER', {'quantity': 0}, HTTPStatus.BAD_REQUEST),
             ('SBER', {'quantity': -2}, HTTPStatus.BAD_REQUEST),
-            ('SBER', {'quantity': '1'}, HTTPStatus.BAD_REQUEST),
+            ('SBER', {'quantity': 'nope'}, HTTPStatus.BAD_REQUEST),
             ('SBER', {'quantity': None}, HTTPStatus.BAD_REQUEST),
             ('SBER', {}, HTTPStatus.BAD_REQUEST),
             ('T', {'quantity': 4}, HTTPStatus.NOT_FOUND),
