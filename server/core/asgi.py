@@ -1,5 +1,5 @@
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, ExitStack
 import logging
 import os
 import typing
@@ -15,30 +15,37 @@ logger = logging.getLogger(__name__)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 
-application = typing.cast(ASGI3Application, get_asgi_application())
+app = typing.cast(ASGI3Application, get_asgi_application())
 
 
 @asynccontextmanager
-async def tasks_scheduler_lifespan() -> AsyncIterator[None]:
-    from tasks.scheduler import scheduler
+async def lifespan() -> AsyncIterator[None]:
+    from tasks.scheduler import run_background_tasks
 
-    scheduler.start()
-    yield
-    scheduler.shutdown()
+    contexts = []
+
+    if settings.RUN_BACKGROUND_TASKS:
+        contexts.append(run_background_tasks)
+
+    with ExitStack() as stack:
+        for context in contexts:
+            stack.enter_context(context())
+
+        yield
 
 
-if settings.RUN_BACKGROUND_TASKS:
-    application = LifespanMiddleware(
-        application,
-        lifespan=tasks_scheduler_lifespan,
-    )
+app = LifespanMiddleware(
+    app,
+    lifespan=lifespan,
+)
 
-if __name__ == '__main__':
+
+def main() -> None:
     config = uvicorn.Config(
-        app='asgi:application',
+        app='asgi:app',
         loop='uvloop',
         lifespan='on',
-        timeout_graceful_shutdown=3,
+        timeout_graceful_shutdown=10,
         host='127.0.0.1' if settings.DEBUG else '0.0.0.0',
         port=8000,
         proxy_headers=True,
@@ -54,3 +61,7 @@ if __name__ == '__main__':
     except:
         logger.critical('ASGI server crashed', exc_info=True)
         raise
+
+
+if __name__ == '__main__':
+    main()

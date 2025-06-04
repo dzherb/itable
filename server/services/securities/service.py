@@ -1,5 +1,3 @@
-import logging
-
 from django.db import IntegrityError
 
 from api.exceptions import NotFoundError
@@ -11,8 +9,6 @@ from schemas.security import (
     PortfolioSecuritySchema,
     PortfolioSecurityUpdateSchema,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class SecurityAlreadyExistsError(Exception):
