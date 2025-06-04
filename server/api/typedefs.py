@@ -2,6 +2,7 @@ from collections.abc import Awaitable, Callable, Coroutine
 import typing
 
 from django.http import HttpRequest, HttpResponse
+from pydantic import BaseModel
 
 from apps.users.models import ItableUser
 
@@ -32,11 +33,11 @@ class AuthenticatedRequest(HttpRequest):
     auser: Callable[[], Awaitable[ItableUser]]
 
 
-class PopulatedSchemaRequest[T: 'DataclassInstance'](HttpRequest):
+class PopulatedSchemaRequest[T: 'DataclassInstance' | BaseModel](HttpRequest):
     populated_schema: T
 
 
-class AuthenticatedPopulatedSchemaRequest[T: 'DataclassInstance'](
+class AuthenticatedPopulatedSchemaRequest[T: 'DataclassInstance' | BaseModel](
     AuthenticatedRequest,
     PopulatedSchemaRequest[T],
 ):

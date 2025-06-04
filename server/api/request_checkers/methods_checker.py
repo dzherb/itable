@@ -7,7 +7,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 
 from api.request_checkers.checker_protocol import Checker
 
-Methods = Literal['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS']
+Methods = Literal['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']
 
 
 class MethodsChecker(Checker):

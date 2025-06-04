@@ -248,8 +248,8 @@ class PortfolioListTestCase(TestCase):
             headers=self.first_user_credentials,
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-        error = json.loads(response.content)['error']
-        self.assertEqual(error, 'name cannot be empty')
+        error = json.loads(response.content)['error'][0]['type']
+        self.assertEqual(error, 'string_too_short')
 
 
 class PortfolioSecurityTestCase(TestCase):
