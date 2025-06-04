@@ -6,12 +6,18 @@ volumes:
 services:
   db:
     container_name: itable-db
-    image: postgres:14.16-alpine3.20
+    image: postgres
     env_file: .env
     ports:
       - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
+
+  broker:
+    container_name: itable-nats
+    image: nats
+    ports:
+      - "4222:4222"
 
   backend:
     container_name: itable-backend

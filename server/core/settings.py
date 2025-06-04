@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-TRUE_VALUES = ('true', 'y')
+TRUE_VALUES = ('true', 'y', 'yes', '1')
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -119,7 +119,12 @@ LOGGING_CONFIG = 'logger.setup.setup'
 if len(sys.argv) > 1 and sys.argv[1] == 'test':
     logging.disable(logging.CRITICAL)
 
-RUN_BACKGROUND_TASKS = os.getenv('RUN_BACKGROUND_TASKS', 'y') in TRUE_VALUES
+RUN_BACKGROUND_TASKS = (
+    os.getenv('RUN_BACKGROUND_TASKS', 'n').lower() in TRUE_VALUES
+)
+
+NATS_URL = os.getenv('NATS_URL', '')
+HANDLE_EVENTS = os.getenv('HANDLE_EVENTS', 'n').lower() in TRUE_VALUES
 
 ACCESS_TOKEN_TIME_TO_LIVE = datetime.timedelta(
     minutes=int(os.getenv('ACCESS_TOKEN_TIME_TO_LIVE_IN_MINUTES', '10')),

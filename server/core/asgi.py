@@ -1,5 +1,5 @@
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager, ExitStack
+from contextlib import asynccontextmanager, AsyncExitStack
 import logging
 import os
 import typing
@@ -20,6 +20,7 @@ app = typing.cast(ASGI3Application, get_asgi_application())
 
 @asynccontextmanager
 async def lifespan() -> AsyncIterator[None]:
+    from events.event_bus import EventBus
     from tasks.scheduler import run_background_tasks
 
     contexts = []
@@ -27,9 +28,12 @@ async def lifespan() -> AsyncIterator[None]:
     if settings.RUN_BACKGROUND_TASKS:
         contexts.append(run_background_tasks)
 
-    with ExitStack() as stack:
+    if settings.HANDLE_EVENTS:
+        contexts.append(EventBus.handle_events)
+
+    async with AsyncExitStack() as stack:
         for context in contexts:
-            stack.enter_context(context())
+            await stack.enter_async_context(context())
 
         yield
 
