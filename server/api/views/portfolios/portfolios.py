@@ -9,7 +9,7 @@ from api.typedefs import (
     AuthenticatedRequest,
 )
 from api.utils.dispatcher import create_dispatcher
-from schemas.portfolios import (
+from schemas.portfolio import (
     PortfolioCreateSchema,
     PortfolioListSchema,
     PortfolioSchema,
@@ -20,7 +20,11 @@ from services.portfolios.service import PortfolioService
 logger = logging.getLogger('api')
 
 
-@api_view(login_required=True, permissions=[IsPortfolioOwner()])
+@api_view(
+    methods=['GET'],
+    login_required=True,
+    permissions=[IsPortfolioOwner()],
+)
 async def get_portfolio(
     request: AuthenticatedRequest,
     pk: int,
@@ -44,7 +48,11 @@ async def create_portfolio(
     return JsonResponse(portfolio.model_dump())
 
 
-@api_view(login_required=True, permissions=[IsPortfolioOwner()])
+@api_view(
+    methods=['DELETE'],
+    login_required=True,
+    permissions=[IsPortfolioOwner()],
+)
 async def delete_portfolio(
     request: AuthenticatedRequest,
     pk: int,
@@ -54,8 +62,8 @@ async def delete_portfolio(
 
 
 @api_view(
-    login_required=True,
     methods=['PATCH'],
+    login_required=True,
     permissions=[IsPortfolioOwner()],
     request_schema=PortfolioUpdateSchema,
 )
@@ -80,8 +88,10 @@ detail_dispatcher = create_dispatcher(
 
 @api_view(methods=['GET'], login_required=True)
 async def portfolio_list(request: AuthenticatedRequest) -> HttpResponse:
-    portfolios: PortfolioListSchema = await PortfolioService().portfolio_list(
-        request.user_id,
+    portfolios: PortfolioListSchema = (
+        await PortfolioService().get_user_portfolios(
+            request.user_id,
+        )
     )
 
     return JsonResponse(portfolios.model_dump())

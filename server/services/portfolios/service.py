@@ -1,6 +1,6 @@
 from api.utils import aget_object_or_404_json
 from apps.portfolios.models import Portfolio
-from schemas.portfolios import (
+from schemas.portfolio import (
     PortfolioCreateSchema,
     PortfolioListSchema,
     PortfolioSchema,
@@ -53,7 +53,7 @@ class PortfolioService:
         portfolio.is_active = False
         await portfolio.asave()
 
-    async def portfolio_list(self, user_id: int) -> PortfolioListSchema:
+    async def get_user_portfolios(self, user_id: int) -> PortfolioListSchema:
         select_fields = tuple(PortfolioSimpleSchema.model_fields.keys())
         user_portfolios = Portfolio.objects.filter(
             owner_id=user_id,
