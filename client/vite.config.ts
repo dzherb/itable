@@ -5,6 +5,8 @@ import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
 
+const DEV_SERVER_URL = 'http://localhost:8000'
+
 // https://vite.dev/config/
 export default defineConfig({
   define: {
@@ -12,7 +14,9 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': 'http://localhost:8000',
+      '/admin': DEV_SERVER_URL,
+      '/static': DEV_SERVER_URL,
+      '/api': DEV_SERVER_URL,
     }
   },
   plugins: [
