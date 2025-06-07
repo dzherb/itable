@@ -31,7 +31,9 @@
           @click="scrollToSlide(index)"
           :class="[
             'h-2 w-2 rounded-full transition-all duration-300',
-            currentIndex === index ? 'scale-110 bg-primary-300' : 'bg-primary-200',
+            currentIndex === index
+              ? 'scale-110 bg-primary-300'
+              : 'bg-primary-200 dark:bg-primary-900',
           ]"
         />
       </div>

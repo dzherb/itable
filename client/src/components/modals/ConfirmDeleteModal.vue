@@ -6,7 +6,7 @@
       </h2>
       <p class="text-xs text-primary-800 dark:text-primary-200">Восстановить будет невозможно</p>
       <div class="mt-1 flex flex-col justify-between gap-2 xs:flex-row xs:gap-5">
-        <BaseButton class="basis-full">Да</BaseButton>
+        <BaseButton class="basis-full" @click="$emit('confirm')">Да</BaseButton>
         <BaseButton inverted class="basis-full" @click="$emit('close')">Нет</BaseButton>
       </div>
     </div>
@@ -24,5 +24,6 @@ defineProps<{
 
 defineEmits<{
   close: []
+  confirm: []
 }>()
 </script>

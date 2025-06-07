@@ -7,7 +7,7 @@
         <div
           v-on-click-outside="() => $emit('close')"
           ref="mainContainer"
-          class="slide-in mx-5 my-auto max-w-[510px] grow rounded-soft bg-white px-6 py-6 shadow-md dark:bg-primary-800"
+          class="slide-in mx-5 my-auto max-w-[450px] grow rounded-soft bg-white px-6 py-6 shadow-md dark:bg-primary-800"
         >
           <slot name="header">
             <div class="flex justify-end">
