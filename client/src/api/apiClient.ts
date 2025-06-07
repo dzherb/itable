@@ -84,7 +84,6 @@ export const apiFetch = async (
       isRefreshing = false
       resolveQueue(err as Error)
       clearTokens()
-      // todo redirect to login?
       throw err
     }
   }

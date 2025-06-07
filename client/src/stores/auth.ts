@@ -40,13 +40,9 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchProfile() {
-    try {
-      const response = await apiFetch('/api/users/me/', {}, false)
-      user.value = await response.json()
-      isAuthenticated.value = true
-    } catch {
-      isAuthenticated.value = false
-    }
+    const response = await apiFetch('/api/users/me/', {}, true)
+    user.value = await response.json()
+    isAuthenticated.value = true
   }
 
   return { user, isAuthenticated, login, logout, fetchProfile }
