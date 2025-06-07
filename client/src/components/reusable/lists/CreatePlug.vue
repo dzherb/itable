@@ -1,5 +1,8 @@
 <template>
+  <BaseModal v-if="showModal" @close="showModal = false" />
   <button
+    @click="showModal = true"
+    v-bind="$attrs"
     class="flex h-24 items-center justify-center gap-3 rounded-soft text-lg text-white opacity-50 transition-opacity select-none hover:opacity-70 active:opacity-70"
   >
     Создать <PlusIcon />
@@ -8,6 +11,14 @@
 
 <script setup lang="ts">
 import PlusIcon from '@/components/icons/PlusIcon.vue'
+import BaseModal from '@/components/modals/BaseModal.vue'
+import { shallowRef } from 'vue'
+
+defineOptions({
+  inheritAttrs: false,
+})
+
+const showModal = shallowRef(false)
 </script>
 
 <style scoped>

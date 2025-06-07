@@ -39,7 +39,7 @@
   }
 }
 
-/* It helps with smooth theme switch transition */
+/* It smoothes the theme switch transition */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;

@@ -15,9 +15,9 @@
 
 <script setup lang="ts">
 import { useTheme } from '@/composables/useTheme.ts'
-import LogoWithTitle from '@/components/pages/login/LogoWithTitle.vue'
-import LoginForm from '@/components/pages/login/LoginForm.vue'
-import LoginFooter from '@/components/pages/login/LoginFooter.vue'
+import LogoWithTitle from '@/components/pages/auth/LogoWithTitle.vue'
+import LoginForm from '@/components/pages/auth/LoginForm.vue'
+import LoginFooter from '@/components/pages/auth/LoginFooter.vue'
 
 const { toggleThemeWithTransition } = useTheme()
 </script>
