@@ -57,10 +57,10 @@ class EventBus:
         if cls.status == Status.RUNNING:
             return
 
-        cls.broker = NatsBroker(settings.NATS_URL)
+        cls.broker = NatsBroker(settings.NATS_URL, logger=logger)
         cls.broker.include_router(router)
 
-        app = FastStream(cls.broker)
+        app = FastStream(cls.broker, logger=logger)
 
         async with asyncio.timeout(cls.START_TIMEOUT_IN_SECONDS):
             await app.start()
