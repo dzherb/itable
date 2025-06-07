@@ -1,7 +1,5 @@
 <template>
-  <nav
-    class="fixed flex w-full items-center justify-start gap-6 bg-primary px-5 py-6 dark:bg-primary-900"
-  >
+  <BaseNavigationBar>
     <NavigationLink :to="{ name: 'portfolios' }"> Мои портфели </NavigationLink>
     <NavigationLink :to="{ name: 'tables' }"> Таблицы </NavigationLink>
     <span class="grow"></span>
@@ -13,7 +11,7 @@
         >Настройки</span
       >
     </button>
-  </nav>
+  </BaseNavigationBar>
 </template>
 
 <script setup lang="ts">
@@ -21,6 +19,7 @@ import SettingsIcon from '@/components/icons/SettingsIcon.vue'
 import { useTheme } from '@/composables/useTheme.ts'
 import NavigationLink from '@/components/navigation/NavigationLink.vue'
 import { useTailwindBreakpoints } from '@/composables/useTailwindBreakpoints.ts'
+import BaseNavigationBar from '@/components/navigation/BaseNavigationBar.vue'
 
 const { toggleThemeWithTransition } = useTheme()
 const { breakpoints } = useTailwindBreakpoints()

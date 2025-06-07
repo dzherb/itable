@@ -3,16 +3,21 @@
     <a
       :href
       @click="navigate"
-      class="text-xs font-bold text-white transition-opacity lg:text-sm dark:text-primary-300"
-      :class="{ 'opacity-50': !isActive }"
+      class="flex items-center gap-2.5 text-xs font-bold text-white transition-opacity lg:text-sm dark:text-primary-300"
+      :class="{ 'opacity-50': !(isActive || active) }"
     >
-      <slot />
+      <slot :iconClass="'stroke-white dark:stroke-primary-300'" />
     </a>
   </RouterLink>
 </template>
 
 <script setup lang="ts">
-defineProps(['to'])
-</script>
+import { type RouteLocationRaw } from 'vue-router'
 
-<style scoped></style>
+interface Props {
+  to: RouteLocationRaw
+  active?: boolean
+}
+
+const { active = false } = defineProps<Props>()
+</script>

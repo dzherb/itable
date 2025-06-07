@@ -25,6 +25,15 @@ const newRouter = () => {
             component: () => import('@/pages/PortfoliosPage.vue'),
           },
           {
+            path: '/portfolio',
+            name: 'portfolio',
+            meta: {
+              requiresAuth: true,
+              backTo: 'portfolios',
+            },
+            component: () => import('@/pages/PortfolioPage.vue'),
+          },
+          {
             path: '/tables',
             name: 'tables',
             meta: {

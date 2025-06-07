@@ -1,11 +1,12 @@
 <template>
-  <div class="rounded-b-soft bg-primary px-5 pb-5 dark:bg-primary-900">
+  <ExtendedNavbarBlock>
     <PortfolioList />
-  </div>
+  </ExtendedNavbarBlock>
 </template>
 
 <script setup lang="ts">
 import PortfolioList from '@/components/pages/portfolios/PortfolioList.vue'
+import ExtendedNavbarBlock from '@/components/reusable/layout/ExtendedNavbarBlock.vue'
 </script>
 
 <style scoped></style>

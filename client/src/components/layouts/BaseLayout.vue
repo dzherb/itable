@@ -1,11 +1,13 @@
 <template>
-  <NavigationBar class="z-20" />
+  <GoBackNavigationBar v-if="backTo" :backTo class="z-20" />
+  <NavigationBar v-else class="z-20" />
+
   <main class="relative min-h-screen overflow-x-hidden dark:bg-primary-800">
     <div class="h-[72px] w-full bg-primary dark:bg-primary-900"></div>
     <RouterView v-slot="{ Component, route }">
       <Transition mode="out-in" :name="applyTransition ? String(route?.meta?.transition) : ''">
         <KeepAlive>
-          <Component class="w-full" :is="Component" />
+          <Component :is="Component" />
         </KeepAlive>
       </Transition>
     </RouterView>
@@ -16,13 +18,16 @@
 import NavigationBar from '@/components/navigation/NavigationBar.vue'
 import { usePreferredReducedMotion } from '@vueuse/core'
 import { computed } from 'vue'
-import { useTheme } from '@/composables/useTheme.ts'
 import { useTailwindBreakpoints } from '@/composables/useTailwindBreakpoints.ts'
+import GoBackNavigationBar from '@/components/navigation/GoBackNavigationBar.vue'
+import { useRoute } from 'vue-router'
 
 const reducedMotion = usePreferredReducedMotion()
 
 const { breakpoints } = useTailwindBreakpoints()
 const lgOrGreater = breakpoints.greaterOrEqual('lg')
+
+const backTo = computed(() => useRoute().meta?.backTo as string)
 
 const applyTransition = computed(
   () => reducedMotion.value === 'no-preference' && !lgOrGreater.value,
