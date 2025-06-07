@@ -6,7 +6,7 @@
     <div class="h-[72px] w-full bg-primary dark:bg-primary-900"></div>
     <RouterView v-slot="{ Component, route }">
       <Transition mode="out-in" :name="applyTransition ? (route?.meta?.transition as string) : ''">
-        <KeepAlive>
+        <KeepAlive exclude="PortfolioPage">
           <Component :is="Component" />
         </KeepAlive>
       </Transition>

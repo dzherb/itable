@@ -9,12 +9,8 @@
       </span>
     </template>
     <template #append>
-      <div class="relative h-full min-w-20">
-        <span
-          class="absolute right-0 text-xs leading-[14px] text-primary-400 dark:text-primary-300"
-        >
-          от {{ dateFormatted }}
-        </span>
+      <div class="h-full text-xs leading-[14px] text-primary-400 dark:text-primary-300">
+        от {{ dateFormatted }}
       </div>
     </template>
   </ListItem>
