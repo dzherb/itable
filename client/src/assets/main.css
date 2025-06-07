@@ -23,6 +23,8 @@
   --color-gray-500: #808080;
 
   --radius-soft: 0.875rem;
+
+  --breakpoint-xs: 30rem;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));

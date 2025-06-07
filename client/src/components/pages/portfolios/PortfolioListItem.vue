@@ -1,10 +1,10 @@
 <template>
-  <ListItem :action="navigateToPortfolio">
+  <ListItem>
     <template #name>
-      <span class="text-sm text-primary dark:text-primary-300">{{ name }}</span>
+      <span class="text-sm leading-none text-primary dark:text-primary-300">{{ name }}</span>
     </template>
     <template #additional>
-      <span class="text-2xl font-bold text-primary-500 dark:text-primary-200">
+      <span class="text-2xl leading-none font-bold text-primary-500 dark:text-primary-200">
         {{ totalWithCurrency }}
       </span>
     </template>

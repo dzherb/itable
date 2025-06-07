@@ -1,10 +1,10 @@
 <template>
   <ListItem>
     <template #name>
-      <span class="text-sm text-primary-800 dark:text-primary-200">Таблица</span>
+      <span class="text-sm leading-none text-primary-800 dark:text-primary-200">Таблица</span>
     </template>
     <template #additional>
-      <span class="text-xs text-gray-500 dark:text-primary-300">MOEX</span>
+      <span class="text-xs leading-none text-gray-500 dark:text-primary-300">MOEX</span>
     </template>
     <template #append>
       <NavigateButton />

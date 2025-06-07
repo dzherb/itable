@@ -1,16 +1,18 @@
 <template>
   <ListItem>
     <template #name>
-      <span class="text-sm font-bold text-primary dark:text-primary-300">{{ name }}</span>
+      <span class="text-sm leading-none text-primary dark:text-primary-300">{{ name }}</span>
     </template>
     <template #additional>
-      <span class="text-2xl font-bold text-primary-500 dark:text-primary-200">
+      <span class="text-2xl leading-none font-bold text-primary-500 dark:text-primary-200">
         {{ totalWithCurrency }}
       </span>
     </template>
     <template #append>
       <div class="relative h-full min-w-20">
-        <span class="absolute top-1 right-0 text-xs text-primary-400 dark:text-primary-300">
+        <span
+          class="absolute right-0 text-xs leading-[14px] text-primary-400 dark:text-primary-300"
+        >
           от {{ dateFormatted }}
         </span>
       </div>

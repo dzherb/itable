@@ -11,7 +11,7 @@
         >
           <slot name="header">
             <div class="flex justify-end">
-              <CloseButton @click="$emit('close')" />
+              <CloseButton v-if="closable" @click="$emit('close')" />
             </div>
           </slot>
           <div v-if="$slots.default" class="px-2 pb-2">
@@ -27,6 +27,10 @@
 import { UseFocusTrap } from '@vueuse/integrations/useFocusTrap/component'
 import { vOnClickOutside } from '@vueuse/components'
 import CloseButton from '@/components/reusable/buttons/CloseButton.vue'
+
+const { closable = true } = defineProps<{
+  closable?: boolean
+}>()
 
 defineEmits<{
   close: []

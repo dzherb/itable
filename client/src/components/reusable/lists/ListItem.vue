@@ -1,6 +1,6 @@
 <template>
   <BaseItemCard>
-    <div class="flex flex-col gap-2">
+    <div class="flex h-full flex-col justify-center gap-2">
       <slot name="name" />
       <slot name="additional" />
     </div>

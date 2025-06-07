@@ -3,7 +3,7 @@
   <button
     @click="showModal = true"
     v-bind="$attrs"
-    class="flex h-24 items-center justify-center gap-3 rounded-soft text-lg text-white opacity-50 transition-opacity select-none hover:opacity-70 active:opacity-70"
+    class="flex h-[88px] items-center justify-center gap-3 rounded-soft text-lg text-white opacity-50 transition-opacity select-none hover:opacity-70 active:opacity-70"
   >
     Создать <PlusIcon />
   </button>

@@ -14,10 +14,8 @@
 <script setup lang="ts">
 import { type RouteLocationRaw } from 'vue-router'
 
-interface Props {
+const { active = false } = defineProps<{
   to: RouteLocationRaw
   active?: boolean
-}
-
-const { active = false } = defineProps<Props>()
+}>()
 </script>
