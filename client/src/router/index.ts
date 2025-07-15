@@ -1,6 +1,6 @@
 import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 import { useNProgress } from '@vueuse/integrations/useNProgress'
-import {getAccessToken} from "@/common/auth.ts";
+import { getAccessToken } from '@/common/auth.ts'
 
 const loadedChunks = new Set<string>()
 

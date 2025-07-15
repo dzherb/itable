@@ -1,6 +1,6 @@
 import '@/assets/main.css'
 import { createVueApp } from '@/main.ts'
-import { registerEvents } from "@/events/events.ts";
+import { registerEvents } from '@/events/events.ts'
 
 const { app, router } = createVueApp()
 
