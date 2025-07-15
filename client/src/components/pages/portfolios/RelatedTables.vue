@@ -44,7 +44,7 @@
 <script setup lang="ts">
 import ListItem from '@/components/reusable/lists/ListItem.vue'
 import { ref, shallowRef, useTemplateRef } from 'vue'
-import { useEventListener } from '@vueuse/core'
+import { useDebounceFn, useEventListener } from '@vueuse/core'
 
 const slides = ref([
   { title: 'Таблица 1', label: 'IMOEX' },
@@ -63,7 +63,7 @@ const updateIndex = () => {
   currentIndex.value = Math.round(scrollLeft / width)
 }
 
-useEventListener(sliderRef, 'scroll', updateIndex)
+useEventListener(sliderRef, 'scroll', useDebounceFn(updateIndex, 35))
 
 const scrollToSlide = (index: number) => {
   currentIndex.value = index

@@ -10,8 +10,8 @@
 </template>
 
 <script setup lang="ts">
-import PlusIcon from '@/components/icons/PlusIcon.vue'
-import BaseModal from '@/components/modals/BaseModal.vue'
+import PlusIcon from '@/components/reusable/icons/PlusIcon.vue'
+import BaseModal from '@/components/reusable/modals/ModalBase.vue'
 import { shallowRef } from 'vue'
 
 defineOptions({

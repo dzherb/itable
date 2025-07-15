@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :closable="false" @close="$emit('close')">
+  <ModalBase :closable="false" @close="$emit('close')">
     <form class="flex flex-col gap-4" @submit.prevent>
       <h2 class="text-sm font-bold text-primary dark:text-primary-200">Назовите портфель</h2>
       <BaseInput autofocus />
@@ -8,11 +8,11 @@
         <BaseButton inverted class="basis-full" @click="$emit('close')">Отмена</BaseButton>
       </div>
     </form>
-  </BaseModal>
+  </ModalBase>
 </template>
 
 <script setup lang="ts">
-import BaseModal from '@/components/modals/BaseModal.vue'
+import ModalBase from '@/components/reusable/modals/ModalBase.vue'
 import BaseInput from '@/components/reusable/forms/inputs/BaseInput.vue'
 import BaseButton from '@/components/reusable/buttons/BaseButton.vue'
 

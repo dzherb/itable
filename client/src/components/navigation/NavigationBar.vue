@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import SettingsIcon from '@/components/icons/SettingsIcon.vue'
+import SettingsIcon from '@/components/reusable/icons/SettingsIcon.vue'
 import { useTheme } from '@/composables/useTheme.ts'
 import NavigationLink from '@/components/navigation/NavigationLink.vue'
 import { useTailwindBreakpoints } from '@/composables/useTailwindBreakpoints.ts'

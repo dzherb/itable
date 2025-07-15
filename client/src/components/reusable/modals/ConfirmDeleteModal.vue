@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :closable="false" @close="$emit('close')">
+  <ModalBase :closable="false" @close="$emit('close')">
     <div class="flex flex-col gap-4">
       <h2 class="text-sm font-bold text-primary dark:text-primary-200">
         Вы действительно хотите удалить {{ entity }}?
@@ -10,13 +10,13 @@
         <BaseButton inverted class="basis-full" @click="$emit('close')">Нет</BaseButton>
       </div>
     </div>
-  </BaseModal>
+  </ModalBase>
 </template>
 
 <style scoped></style>
 <script setup lang="ts">
-import BaseModal from '@/components/modals/BaseModal.vue'
 import BaseButton from '@/components/reusable/buttons/BaseButton.vue'
+import ModalBase from '@/components/reusable/modals/ModalBase.vue'
 
 defineProps<{
   entity?: string

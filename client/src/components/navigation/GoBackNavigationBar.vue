@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import NavigationLink from '@/components/navigation/NavigationLink.vue'
-import BackIcon from '@/components/icons/BackIcon.vue'
+import BackIcon from '@/components/reusable/icons/BackIcon.vue'
 import BaseNavigationBar from '@/components/navigation/BaseNavigationBar.vue'
 
 defineProps<{

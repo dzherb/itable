@@ -1,12 +1,12 @@
 <template>
-  <teleport to="body">
+  <Teleport to="body">
     <UseFocusTrap :options="{ immediate: true, allowOutsideClick: true }">
       <div
         class="fade-in fixed top-0 left-0 z-40 flex h-full w-screen items-center justify-center overflow-y-auto bg-black/40 py-10 dark:bg-black/30"
       >
         <div
+          v-bind="$attrs"
           v-on-click-outside="() => $emit('close')"
-          ref="mainContainer"
           class="slide-in mx-5 my-auto max-w-[450px] grow rounded-soft bg-white px-6 py-6 shadow-md dark:bg-primary-800"
         >
           <slot name="header">
@@ -20,13 +20,17 @@
         </div>
       </div>
     </UseFocusTrap>
-  </teleport>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
 import { UseFocusTrap } from '@vueuse/integrations/useFocusTrap/component'
 import { vOnClickOutside } from '@vueuse/components'
 import CloseButton from '@/components/reusable/buttons/CloseButton.vue'
+
+defineOptions({
+  inheritAttrs: false,
+})
 
 const { closable = true } = defineProps<{
   closable?: boolean

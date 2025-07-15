@@ -28,5 +28,5 @@ const total = shallowRef(500000)
 const created = shallowRef(new Date())
 
 const totalWithCurrency = computed(() => currencyRUBFormatter.format(total.value))
-const dateFormatted = computed(() => created.value.toLocaleDateString())
+const dateFormatted = computed(() => created.value.toLocaleDateString('ru'))
 </script>

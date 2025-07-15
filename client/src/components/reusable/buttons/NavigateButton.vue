@@ -5,5 +5,5 @@
 </template>
 
 <script setup lang="ts">
-import ArrowIcon from '@/components/icons/ArrowIcon.vue'
+import ArrowIcon from '@/components/reusable/icons/ArrowIcon.vue'
 </script>

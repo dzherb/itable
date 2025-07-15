@@ -6,5 +6,5 @@
 </template>
 
 <script setup lang="ts">
-import LogoIcon from '@/components/icons/LogoIcon.vue'
+import LogoIcon from '@/components/reusable/icons/LogoIcon.vue'
 </script>

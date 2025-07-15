@@ -5,5 +5,5 @@
 </template>
 
 <script setup lang="ts">
-import CloseIcon from '@/components/icons/CloseIcon.vue'
+import CloseIcon from '@/components/reusable/icons/CloseIcon.vue'
 </script>

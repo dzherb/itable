@@ -23,13 +23,13 @@
 </template>
 
 <script setup lang="ts">
-import EditIcon from '@/components/icons/EditIcon.vue'
+import EditIcon from '@/components/reusable/icons/EditIcon.vue'
 import CardButton from '@/components/reusable/buttons/CardButton.vue'
 import PortfolioDetailItem from '@/components/pages/portfolios/PortfolioDetailItem.vue'
-import DeleteIcon from '@/components/icons/DeleteIcon.vue'
-import RenamePortfolioModal from '@/components/modals/RenamePortfolioModal.vue'
+import DeleteIcon from '@/components/reusable/icons/DeleteIcon.vue'
+import RenamePortfolioModal from '@/components/pages/portfolios/RenamePortfolioModal.vue'
 import { shallowRef } from 'vue'
-import ConfirmDeleteModal from '@/components/modals/ConfirmDeleteModal.vue'
+import ConfirmDeleteModal from '@/components/reusable/modals/ConfirmDeleteModal.vue'
 import ListContainer from '@/components/reusable/lists/ListContainer.vue'
 
 const showRenamePortfolioModal = shallowRef(false)
