@@ -1,31 +1,31 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
-import * as authService from '@/api/authService'
-import { useAuthStore } from '@/stores/auth.ts'
+import * as auth from '@/common/auth'
+import { useAuthStore } from '@/stores/auth'
 import { createPinia, setActivePinia } from 'pinia'
 
 global.fetch = vi.fn()
 
-describe('authService', () => {
+describe('auth', () => {
   beforeEach(() => {
     localStorage.clear()
     vi.resetAllMocks()
   })
 
   it('stores and retrieves tokens from localStorage', () => {
-    authService.setTokens({ accessToken: '123', refreshToken: '321' })
-    expect(authService.getAccessToken()).toBe('123')
-    expect(authService.getRefreshToken()).toBe('321')
+    auth.setTokens({ accessToken: '123', refreshToken: '321' })
+    expect(auth.getAccessToken()).toBe('123')
+    expect(auth.getRefreshToken()).toBe('321')
   })
 
   it('removes token on clearTokens', () => {
-    authService.setTokens({ accessToken: '123', refreshToken: '321' })
-    authService.clearTokens()
-    expect(authService.getAccessToken()).toBeNull()
-    expect(authService.getRefreshToken()).toBeNull()
+    auth.setTokens({ accessToken: '123', refreshToken: '321' })
+    auth.clearTokens()
+    expect(auth.getAccessToken()).toBeNull()
+    expect(auth.getRefreshToken()).toBeNull()
   })
 
   it('refreshes token correctly', async () => {
-    authService.setTokens({ accessToken: 'old_access_token', refreshToken: 'old_refresh_token' })
+    auth.setTokens({ accessToken: 'old_access_token', refreshToken: 'old_refresh_token' })
 
     const accessToken = 'new_access_token'
     const refreshToken = 'new_refresh_token'
@@ -35,22 +35,22 @@ describe('authService', () => {
       json: () => Promise.resolve({ access_token: accessToken, refresh_token: refreshToken }),
     })
 
-    const tokens = await authService.refreshTokens()
+    const tokens = await auth.refreshTokens()
     expect(tokens.accessToken).toBe(accessToken)
     expect(tokens.refreshToken).toBe(refreshToken)
   })
 
   it('throws on failed refresh', async () => {
-    authService.setTokens({ accessToken: '123', refreshToken: '321' })
+    auth.setTokens({ accessToken: '123', refreshToken: '321' })
     ;(fetch as Mock).mockResolvedValue({ ok: false })
 
-    await expect(authService.refreshTokens()).rejects.toThrow('Tokens refresh failed')
+    await expect(auth.refreshTokens()).rejects.toThrow('Tokens refresh failed')
   })
 
   it('throws on refresh attempt with no refresh token available', async () => {
     ;(fetch as Mock).mockResolvedValue({ ok: false })
 
-    await expect(authService.refreshTokens()).rejects.toThrow('No refresh token available')
+    await expect(auth.refreshTokens()).rejects.toThrow('No refresh token available')
   })
 })
 
@@ -69,9 +69,8 @@ describe('authentication', () => {
 
     await useAuthStore().login('a@a.com', 'password')
 
-    expect(useAuthStore().isAuthenticated).toBe(true)
-    expect(authService.getAccessToken()).toBe('123')
-    expect(authService.getRefreshToken()).toBe('321')
+    expect(auth.getAccessToken()).toBe('123')
+    expect(auth.getRefreshToken()).toBe('321')
   })
 
   it('throws on login with invalid credentials', async () => {
@@ -84,8 +83,7 @@ describe('authentication', () => {
 
     await expect(useAuthStore().login('a@a.com', 'password')).rejects.toThrow('Unauthorized')
 
-    expect(useAuthStore().isAuthenticated).toBe(false)
-    expect(authService.getAccessToken()).toBeNull()
-    expect(authService.getRefreshToken()).toBeNull()
+    expect(auth.getAccessToken()).toBeNull()
+    expect(auth.getRefreshToken()).toBeNull()
   })
 })

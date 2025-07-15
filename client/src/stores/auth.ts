@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { setTokens, clearTokens, type TokenPair, type TokenPairResponse } from '@/api/authService'
-import { apiFetch } from '@/api/apiClient.ts'
+import { ref, toValue, type MaybeRefOrGetter } from 'vue'
+import * as auth from '@/common/auth'
+import { type TokenPair, type TokenPairResponse } from '@/common/auth'
+import { apiV1 } from '@/common/api'
+import { eventBus } from '@/events/bus.ts'
 
 interface User {
   id: number
@@ -10,40 +12,36 @@ interface User {
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
-  const isAuthenticated = ref(false)
 
-  const login = async (email: string, password: string) => {
-    const response = await apiFetch(
-      '/api/auth/login/',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      },
-      false,
-    )
-    const data: TokenPairResponse = await response.json()
+  const login = async (email: MaybeRefOrGetter<string>, password: MaybeRefOrGetter<string>) => {
+    const data: TokenPairResponse = await apiV1
+      .post(
+        '/api/auth/login/',
+        {
+          email: toValue(email),
+          password: toValue(password),
+        },
+        { handleRefresh: false },
+      )
+      .then((r) => r.json())
+
     const tokens: TokenPair = {
       accessToken: data.access_token,
       refreshToken: data.refresh_token,
     }
-    setTokens(tokens)
-    isAuthenticated.value = true
+    auth.setTokens(tokens)
+
+    eventBus.emit('userLoggedIn')
   }
 
-  const logout = () => {
-    clearTokens()
-    isAuthenticated.value = false
+  const logout = async () => {
+    auth.clearTokens()
+    eventBus.emit('userLoggedOut')
   }
 
-  async function fetchProfile() {
-    const response = await apiFetch('/api/users/me/', {}, true)
-    user.value = await response.json()
-    isAuthenticated.value = true
+  const fetchCurrentUser = async () => {
+    user.value = await apiV1.get('/api/users/me/').then((r) => r.json())
   }
 
-  return { user, isAuthenticated, login, logout, fetchProfile }
+  return { user, login, logout, fetchCurrentUser }
 })

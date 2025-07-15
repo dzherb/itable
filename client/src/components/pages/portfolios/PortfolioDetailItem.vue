@@ -20,7 +20,7 @@
 // todo there is a lot in common with the PortfolioListItem, we should have a base component
 
 import { computed, shallowRef } from 'vue'
-import { currencyRUBFormatter } from '@/utils/currency.ts'
+import { currencyRUBFormatter } from '@/common/currency.ts'
 import ListItem from '@/components/reusable/lists/ListItem.vue'
 
 const name = shallowRef('Портфель 1')

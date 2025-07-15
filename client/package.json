@@ -27,6 +27,7 @@
     "@vueuse/core": "^13.3.0",
     "@vueuse/integrations": "^13.3.0",
     "focus-trap": "^7.6.5",
+    "mitt": "^3.0.1",
     "nprogress": "^0",
     "pinia": "^3.0.3",
     "tailwindcss": "^4.1.8",

@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { currencyRUBFormatter } from '@/utils/currency.ts'
+import { currencyRUBFormatter } from '@/common/currency.ts'
 import { useRouter } from 'vue-router'
 import ListItem from '@/components/reusable/lists/ListItem.vue'
 import NavigateButton from '@/components/reusable/buttons/NavigateButton.vue'

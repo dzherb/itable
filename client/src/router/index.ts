@@ -1,7 +1,6 @@
 import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 import { useNProgress } from '@vueuse/integrations/useNProgress'
-import { useAuthStore } from '@/stores/auth.ts'
-import { getAccessToken } from '@/api/authService.ts'
+import {getAccessToken} from "@/common/auth.ts";
 
 const loadedChunks = new Set<string>()
 
@@ -81,17 +80,7 @@ const newRouter = () => {
       return
     }
 
-    const auth = useAuthStore()
-
-    if (!auth.isAuthenticated && getAccessToken()) {
-      try {
-        await auth.fetchProfile()
-      } catch {
-        auth.logout()
-      }
-    }
-
-    if (!auth.isAuthenticated) {
+    if (!getAccessToken()) {
       next({ name: 'login' })
     } else {
       next()
