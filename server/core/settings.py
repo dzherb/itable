@@ -126,6 +126,8 @@ RUN_BACKGROUND_TASKS = (
 NATS_URL = os.getenv('NATS_URL', '')
 HANDLE_EVENTS = os.getenv('HANDLE_EVENTS', 'n').lower() in TRUE_VALUES
 
+REDIS_URL = os.getenv('REDIS_URL', '')
+
 ACCESS_TOKEN_TIME_TO_LIVE = datetime.timedelta(
     minutes=int(os.getenv('ACCESS_TOKEN_TIME_TO_LIVE_IN_MINUTES', '10')),
 )

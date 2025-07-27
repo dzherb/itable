@@ -1,5 +1,9 @@
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager, AsyncExitStack
+from contextlib import (
+    AbstractAsyncContextManager,
+    asynccontextmanager,
+    AsyncExitStack,
+)
 import logging
 import os
 import typing
@@ -9,6 +13,7 @@ from django.conf import settings
 from django.core.asgi import get_asgi_application
 import uvicorn
 
+from cache.core import connect_cache_storage
 from utils.asgi.middlewares import LifespanMiddleware
 
 logger = logging.getLogger(__name__)
@@ -20,20 +25,23 @@ app = typing.cast(ASGI3Application, get_asgi_application())
 
 @asynccontextmanager
 async def lifespan() -> AsyncIterator[None]:
-    from events.event_bus import EventBus
-    from tasks.scheduler import run_background_tasks
-
-    contexts = []
+    contexts: list[AbstractAsyncContextManager[typing.Any, typing.Any]] = [
+        connect_cache_storage(),
+    ]
 
     if settings.RUN_BACKGROUND_TASKS:
-        contexts.append(run_background_tasks)
+        from tasks.scheduler import run_background_tasks
+
+        contexts.append(run_background_tasks())
 
     if settings.HANDLE_EVENTS:
-        contexts.append(EventBus.handle_events)
+        from events.event_bus import EventBus
+
+        contexts.append(EventBus.handle_events())
 
     async with AsyncExitStack() as stack:
         for context in contexts:
-            await stack.enter_async_context(context())
+            await stack.enter_async_context(context)
 
         yield
 
@@ -47,7 +55,7 @@ app = LifespanMiddleware(
 def main() -> None:
     config = uvicorn.Config(
         app='asgi:app',
-        loop='uvloop',
+        loop='auto',
         lifespan='on',
         timeout_graceful_shutdown=10,
         host='127.0.0.1' if settings.DEBUG else '0.0.0.0',
