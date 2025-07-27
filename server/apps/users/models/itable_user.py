@@ -3,11 +3,23 @@ import typing
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
+from django.db.models import QuerySet
 
 from apps.users.authentication.jwt import JWT, PyJWT, TokenPair
 
 
+class ItableUserQuerySet(QuerySet['ItableUser']):
+    def active(self) -> 'ItableUserQuerySet':
+        return self.filter(is_active=True)
+
+
 class ItableUserManager(UserManager['ItableUser']):
+    def get_queryset(self) -> ItableUserQuerySet:
+        return ItableUserQuerySet(self.model, using=self._db)
+
+    def active(self) -> ItableUserQuerySet:
+        return self.get_queryset().active()
+
     @typing.override
     def create_user(
         self,
@@ -59,7 +71,7 @@ class ItableUser(AbstractUser):
     email = models.EmailField(unique=True, verbose_name='email', db_index=True)
     refresh_token = models.CharField(max_length=255, default='', blank=True)
 
-    objects: typing.ClassVar[UserManager['ItableUser']] = ItableUserManager()
+    objects: typing.ClassVar[ItableUserManager] = ItableUserManager()
 
     USERNAME_FIELD: str = 'email'
     REQUIRED_FIELDS: typing.ClassVar[list[str]] = []
