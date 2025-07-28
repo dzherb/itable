@@ -1,28 +1,11 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
-from typing import cast, overload, Protocol
+from typing import cast
 
 from django.conf import settings
 
+from cache.common import Cache
 from cache.redis import RedisCache
-
-
-class Cache(Protocol):
-    async def get[T](self, key: str) -> T | None: ...
-
-    @overload
-    async def set[T](self, key: str, value: T, *, ttl: timedelta) -> None: ...
-
-    @overload
-    async def set[T](
-        self,
-        key: str,
-        value: T,
-        *,
-        expires_at: datetime,
-    ) -> None: ...
-
 
 cache: Cache = RedisCache(url=settings.REDIS_URL)
 
